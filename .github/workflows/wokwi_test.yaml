@@ -1,0 +1,67 @@
+name: wokwi_test
+# either manually started, or on a schedule
+on: [ push, workflow_dispatch ]
+jobs:
+  wokwi_test:
+    # ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    # need the repo checked out
+    - name: checkout repo
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    # install oss fpga tools
+    - name: install oss-cad-suite
+      uses: YosysHQ/setup-oss-cad-suite@v2
+      with:
+          python-override: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: | 
+        yosys --version
+        iverilog -V
+        cocotb-config --libpython
+        cocotb-config --python-bin
+
+    - name: checkout tt tools repo
+      uses: actions/checkout@v3
+      with:
+        repository: tinytapeout/tt-support-tools
+        path: tt
+        ref: tt03p5
+
+    # need python and requirements
+    - name: setup python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - run: pip install -r tt/requirements.txt
+
+    # fetch the truth table
+    - name: fetch Verilog and build config
+      run: ./tt/tt_tool.py --create-user-config
+
+    # does the wokwi project have a truthtable?
+    - name: Check the truthtable exists
+      id: check_files
+      uses: andstor/file-existence-action@v2
+      with:
+        files: "src/truthtable.md"
+
+    - name: test
+      if: steps.check_files.outputs.files_exists == 'true'
+      run: |
+        cd src
+        make clean
+        make
+        # make will return success even if the test fails, so check for failure in the results.xml
+        ! grep failure results.xml
+
+    - name: upload vcd
+      if: success() || failure()
+      uses: actions/upload-artifact@v3
+      with:
+          name: test-vcd
+          path: src/*.vcd
+
