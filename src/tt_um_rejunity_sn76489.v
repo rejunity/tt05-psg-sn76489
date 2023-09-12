@@ -123,16 +123,16 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
     always @(posedge clk) begin
         if (reset) begin
-            control_attn[0] = 4'b1;
-            control_attn[1] = 4'b10;
-            control_attn[2] = 4'b100;
-            control_attn[3] = 4'b1000;
+            control_attn[0] <= 4'b1;
+            control_attn[1] <= 4'b10;
+            control_attn[2] <= 4'b100;
+            control_attn[3] <= 4'b1000;
 
-            control_tone_freq[0] = 0;
-            control_tone_freq[1] = 1;
-            control_tone_freq[2] = 2;
+            control_tone_freq[0] <= 0;
+            control_tone_freq[1] <= 1;
+            control_tone_freq[2] <= 2;
 
-            control_noise[0] = 0;
+            control_noise[0] <= 0;
         end else begin
         end
     end
