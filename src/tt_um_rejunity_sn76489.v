@@ -23,7 +23,7 @@ module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
     input  wire [COUNTER_BITS-1:0]  compare,
     input  wire [VALUE_BITS-1:0]    value,
 
-    output wire [VALUE_BITS-1:0]    out
+    output reg  [VALUE_BITS-1:0]    out
 );
     reg [COUNTER_BITS-1:0] counter;
     reg state;
@@ -41,11 +41,11 @@ module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
         end
     end
 
-    assign out = state & value;
+    assign out = value & {VALUE_BITS{state}};
 endmodule
 
 module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 3,
-                                 parameter TONE_ATTENUATION_BITS = 4, parameter TONE_FREQUENCY_BITS = 10,
+                                 parameter TONE_ATTENUATION_BITS = 4, parameter TONE_FREQUENCY_BITS = 10, parameter TONE_BITS = 4,
                                  parameter NOISE_CONTROL_BITS = 3
 ) (
     input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
@@ -57,7 +57,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
-    assign uo_out[7:0] = {8{1'b0}};
+    //assign uo_out[7:0] = {8{1'b0}};
     assign uio_oe[7:0] = {8{1'b1}}; // Bidirectional path set to output
     assign uio_out[7:0] = {8{1'b0}};
     wire reset = ! rst_n;
@@ -69,27 +69,41 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
 
 
-    always @(posedge clk) begin
-        if (reset) begin
-        end else begin
-        end
-    end
-
-    // genvar i;
-    // generate
-    //     for (i = 0; i < NUM_VOICES; i = i + 1) begin
-    //         tone #(.COUNTER_BITS(TONE_FREQUENCY_BITS), .VALUE_BITS(TONE_ATTENUATION_BITS)) tone(
-    //             .clk(clk),
-    //             .reset(reset),
-    //             .compare(),
-    //             .value(),
-    //             )
+    // always @(posedge clk) begin
+    //     if (reset) begin
+    //     end else begin
     //     end
-    // endgenerate
+    // end
 
-    wire snd_out;
-    assign snd_out = 0;
-    assign uo_out[0] = snd_out;
+    reg [TONE_BITS-1:0] tones [NUM_TONES:0];
 
+    genvar i;
+    generate
+        for (i = 0; i < NUM_TONES; i = i + 1) begin
+            tone #(.COUNTER_BITS(TONE_FREQUENCY_BITS), .VALUE_BITS(TONE_BITS)) tone (
+                .clk(clk),
+                .reset(reset),
+                .compare(10'b10),
+                .value(4'b0010),
+                .out(tones[i])
+                );
+        end
+    endgenerate
+
+    // wire tone_out;
+    // tone tone_ (
+    //     .clk(clk),
+    //     .reset(reset),
+    //     .compare(10'b10),
+    //     .value(1'b1),
+    //     .out(tone_out)
+    //     );
+    // assign uo_out[0] = tone_out;
+
+    // wire snd_out;
+    // assign snd_out = 0;
+    //assign uo_out[0] = snd_out;
+
+    assign uo_out = tones[0] + tones[1] + tones[2];
 
 endmodule
