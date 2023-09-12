@@ -29,7 +29,7 @@ module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
     input  wire [COUNTER_BITS-1:0]  compare,
     input  wire [VALUE_BITS-1:0]    value,
 
-    output reg  [VALUE_BITS-1:0]    out
+    output wire [VALUE_BITS-1:0]    out
 );
     reg [COUNTER_BITS-1:0] counter;
     reg state;
@@ -137,7 +137,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
         end
     end
 
-    reg [TONE_BITS-1:0] tone_waves [NUM_TONES-1:0];
+    wire [TONE_BITS-1:0] tone_waves [NUM_TONES-1:0];
 
     genvar i;
     generate
