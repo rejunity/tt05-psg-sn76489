@@ -16,6 +16,12 @@
 //             2: value <= 1642;
 //              ...
 
+// function [7:0] sum (input [7:0] a, b);
+//     begin
+//         sum = a + b;
+//     end
+// endfunction
+
 module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
     input  wire clk,
     input  wire reset,
@@ -42,6 +48,50 @@ module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
     end
 
     assign out = value & {VALUE_BITS{state}};
+endmodule
+
+module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
+    input  wire clk,
+    input  wire reset,
+    input  wire reset_lfsr,
+
+    input  wire [COUNTER_BITS-1:0]  compare,
+    input  wire is_white_noise,
+
+    output reg  out
+);
+
+    reg [COUNTER_BITS-1:0] counter;
+    reg [LFSR_BITS-1:0] lfsr;
+    reg state;
+
+    // For the SMS (1 and 2), Genesis and Game Gear, the tapped bits are bits 0 and 3 ($0009), fed back into bit 15.
+    // For the SG-1000, OMV, SC-3000H, BBC Micro and Colecovision, the tapped bits are bits 0 and 1 ($0003), fed back into bit 14.
+    // For the Tandy 1000, the tapped bits are bits 0 and 4 ($0011), fed back into bit 14.
+    always @(posedge clk) begin
+        if (reset) begin
+            counter <= 0;
+            state <= 0;
+            lfsr <= 1'b1 << (LFSR_BITS-1);
+        end else if (reset_lfsr) begin
+            lfsr <= 1'b1 << (LFSR_BITS-1);
+        end else begin
+            if (counter == compare) begin
+                counter <= 0;               // reset counter
+                state <= ~state;            // flip output state
+                if (state == 0) begin       // only shift LFSR when _previous_ value of state was 0 (new value of state becomes 1 once block finishes)
+                    if (is_white_noise) begin
+                        lfsr <= {lfsr[0] ^ lfsr[1], lfsr[LFSR_BITS-1:1]};
+                    end else begin
+                        lfsr <= {lfsr[0]          , lfsr[LFSR_BITS-1:1]};
+                    end
+                end
+            end else
+                counter <= counter + 1'b1;  // increment counter
+        end
+    end
+
+    assign out = lfsr[0];
 endmodule
 
 module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 1,
