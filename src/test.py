@@ -5,7 +5,7 @@ from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
 
 @cocotb.test()
-async def test_rule110_automata(dut):
+async def test_psg(dut):
 
     dut._log.info("start")
     clock = Clock(dut.clk, 10, units="us")
