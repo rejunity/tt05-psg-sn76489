@@ -44,8 +44,9 @@ module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
     assign out = value & {VALUE_BITS{state}};
 endmodule
 
-module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 3,
-                                 parameter TONE_ATTENUATION_BITS = 4, parameter TONE_FREQUENCY_BITS = 10, parameter TONE_BITS = 4,
+module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 1,
+                                 parameter ATTENUATION_CONTROL_BITS = 4,
+                                 parameter TONE_FREQUENCY_BITS = 10, parameter TONE_BITS = 4,
                                  parameter NOISE_CONTROL_BITS = 3
 ) (
     input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
@@ -62,20 +63,31 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     assign uio_out[7:0] = {8{1'b0}};
     wire reset = ! rst_n;
 
-    // The SN76489 has 8 "registers":
-    // - 4 x 4 bit volume registers
-    // - 3 x 10 bit tone registers
-    // - 1 x 3 bit noise register.
+    // The SN76489 has 8 control "registers":
+    // - 4 x 4 bit volume registers (attenuation)
+    // - 3 x 10 bit tone registers  (frequency)
+    // - 1 x 3 bit noise register
+    reg [ATTENUATION_CONTROL_BITS-1:0]  control_attn[(NUM_TONES + NUM_NOISES)-1:0];
+    reg [TONE_FREQUENCY_BITS-1:0]       control_tone_freq[NUM_TONES-1:0];
+    reg [NOISE_CONTROL_BITS-1:0]        control_noise[NUM_NOISES-1:0];
 
+    always @(posedge clk) begin
+        if (reset) begin
+            control_attn[0] = 4'b1;
+            control_attn[1] = 4'b10;
+            control_attn[2] = 4'b100;
+            control_attn[3] = 4'b1000;
 
+            control_tone_freq[0] = 0;
+            control_tone_freq[1] = 1;
+            control_tone_freq[2] = 2;
 
-    // always @(posedge clk) begin
-    //     if (reset) begin
-    //     end else begin
-    //     end
-    // end
+            control_noise[0] = 0;
+        end else begin
+        end
+    end
 
-    reg [TONE_BITS-1:0] tones [NUM_TONES:0];
+    reg [TONE_BITS-1:0] tone_waves [NUM_TONES-1:0];
 
     genvar i;
     generate
@@ -83,27 +95,13 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             tone #(.COUNTER_BITS(TONE_FREQUENCY_BITS), .VALUE_BITS(TONE_BITS)) tone (
                 .clk(clk),
                 .reset(reset),
-                .compare(10'b10),
-                .value(4'b0010),
-                .out(tones[i])
+                .compare(control_tone_freq[i]),
+                .value(control_attn[i]),
+                .out(tone_waves[i])
                 );
         end
     endgenerate
 
-    // wire tone_out;
-    // tone tone_ (
-    //     .clk(clk),
-    //     .reset(reset),
-    //     .compare(10'b10),
-    //     .value(1'b1),
-    //     .out(tone_out)
-    //     );
-    // assign uo_out[0] = tone_out;
-
-    // wire snd_out;
-    // assign snd_out = 0;
-    //assign uo_out[0] = snd_out;
-
-    assign uo_out = tones[0] + tones[1] + tones[2];
+    assign uo_out = tone_waves[0] + tone_waves[1] + tone_waves[2];
 
 endmodule
