@@ -57,13 +57,14 @@ module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10, parameter
 
     input  wire [COUNTER_BITS-1:0]  compare,
     input  wire is_white_noise,
+    input  wire [VALUE_BITS-1:0]    value,
 
-    output reg  out
+    output wire [VALUE_BITS-1:0]    out
+    //output wire  out
 );
 
     reg [COUNTER_BITS-1:0] counter;
     reg [LFSR_BITS-1:0] lfsr;
-    reg state;
 
     // For the SMS (1 and 2), Genesis and Game Gear, the tapped bits are bits 0 and 3 ($0009), fed back into bit 15.
     // For the SG-1000, OMV, SC-3000H, BBC Micro and Colecovision, the tapped bits are bits 0 and 1 ($0003), fed back into bit 14.
@@ -71,33 +72,57 @@ module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10, parameter
     always @(posedge clk) begin
         if (reset) begin
             counter <= 0;
-            state <= 0;
             lfsr <= 1'b1 << (LFSR_BITS-1);
         end else if (reset_lfsr) begin
             lfsr <= 1'b1 << (LFSR_BITS-1);
         end else begin
             if (counter == compare) begin
                 counter <= 0;               // reset counter
-                state <= ~state;            // flip output state
-                if (state == 0) begin       // only shift LFSR when _previous_ value of state was 0 (new value of state becomes 1 once block finishes)
-                    if (is_white_noise) begin
-                        lfsr <= {lfsr[0] ^ lfsr[1], lfsr[LFSR_BITS-1:1]};
-                    end else begin
-                        lfsr <= {lfsr[0]          , lfsr[LFSR_BITS-1:1]};
-                    end
+                if (is_white_noise) begin
+                    lfsr <= {lfsr[0] ^ lfsr[1], lfsr[LFSR_BITS-1:1]};
+                end else begin
+                    lfsr <= {lfsr[0]          , lfsr[LFSR_BITS-1:1]};
                 end
             end else
                 counter <= counter + 1'b1;  // increment counter
         end
     end
 
-    assign out = lfsr[0];
+    //assign out = lfsr[0];
+    assign out = value & {VALUE_BITS{lfsr[0]}};
 endmodule
+
+module noise_control_decoder #( parameter COUNTER_BITS = 10 ) (
+    input  wire [2:0] control,
+    input  wire [COUNTER_BITS-1:0] tone_freq,
+
+    output reg [COUNTER_BITS-1:0] noise_freq,
+    output reg noise_type
+);
+    // Noise 3 bit control register format: {FB, NF0, NF1}
+    // NF0, NF1: Noise Generator Frequency Control
+    // FB: Noise Feedback Control
+    always @(*) begin
+        // NF0, NF1 bits
+        case(control[1:0])
+            2'b00:  noise_freq = 32;    // =  512/16
+            2'b01:  noise_freq = 64;    // = 1024/16
+            2'b10:  noise_freq = 128;   // = 2048/16
+            2'b11:                      // = tone_freq*2
+                    noise_freq = {tone_freq[COUNTER_BITS-1:1], 1'b0};
+        endcase
+        // FB bit
+        noise_type = control[2];
+    end
+endmodule
+
 
 module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 1,
                                  parameter ATTENUATION_CONTROL_BITS = 4,
-                                 parameter TONE_FREQUENCY_BITS = 10, parameter TONE_BITS = 4,
-                                 parameter NOISE_CONTROL_BITS = 3
+                                 parameter FREQUENCY_COUNTER_BITS = 10, 
+                                 parameter NOISE_CONTROL_BITS = 3,
+                                 parameter CHANNEL_OUTPUT_BITS = 4
+                                 
 ) (
     input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
     output wire [7:0] uo_out,   // Dedicated outputs - connected to the 7 segment display
@@ -117,8 +142,9 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     // - 4 x 4 bit volume registers (attenuation)
     // - 3 x 10 bit tone registers  (frequency)
     // - 1 x 3 bit noise register
-    reg [ATTENUATION_CONTROL_BITS-1:0]  control_attn[(NUM_TONES + NUM_NOISES)-1:0];
-    reg [TONE_FREQUENCY_BITS-1:0]       control_tone_freq[NUM_TONES-1:0];
+    localparam NUM_CHANNELS = NUM_TONES + NUM_NOISES;    
+    reg [ATTENUATION_CONTROL_BITS-1:0]  control_attn[NUM_CHANNELS-1:0];
+    reg [FREQUENCY_COUNTER_BITS-1:0]    control_tone_freq[NUM_TONES-1:0];
     reg [NOISE_CONTROL_BITS-1:0]        control_noise[NUM_NOISES-1:0];
 
     always @(posedge clk) begin
@@ -128,30 +154,51 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             control_attn[2] <= 4'b100;
             control_attn[3] <= 4'b1000;
 
-            control_tone_freq[0] <= 0;
+            control_tone_freq[0] <= 3;
             control_tone_freq[1] <= 1;
-            control_tone_freq[2] <= 2;
+            control_tone_freq[2] <= 0;
 
-            control_noise[0] <= 0;
+            control_noise[0] <= 3'b111;
         end else begin
         end
     end
 
-    wire [TONE_BITS-1:0] tone_waves [NUM_TONES-1:0];
+    wire [CHANNEL_OUTPUT_BITS-1:0] channels [NUM_CHANNELS-1:0];
 
     genvar i;
     generate
         for (i = 0; i < NUM_TONES; i = i + 1) begin
-            tone #(.COUNTER_BITS(TONE_FREQUENCY_BITS), .VALUE_BITS(TONE_BITS)) tone (
+            tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS), .VALUE_BITS(CHANNEL_OUTPUT_BITS)) tone (
                 .clk(clk),
                 .reset(reset),
                 .compare(control_tone_freq[i]),
                 .value(control_attn[i]),
-                .out(tone_waves[i])
+                .out(channels[i])
+                );
+        end
+
+        for (i = 0; i < NUM_NOISES; i = i + 1) begin
+            wire noise_type;
+            wire [FREQUENCY_COUNTER_BITS-1:0] noise_freq;
+            noise_control_decoder #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) noise_control_decoder (
+                .control(control_noise[i]),
+                .tone_freq(control_tone_freq[NUM_TONES-1]), // last tone 
+                .noise_type(noise_type),
+                .noise_freq(noise_freq)
+                );
+
+            noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS), .VALUE_BITS(CHANNEL_OUTPUT_BITS)) noise (
+                .clk(clk),
+                .reset(reset),
+                //.reset_lfsr( TODO )
+                .compare(noise_freq),
+                .is_white_noise(noise_type),
+                .value(control_attn[3]),
+                .out(channels[NUM_TONES+i])
                 );
         end
     endgenerate
 
-    assign uo_out = tone_waves[0] + tone_waves[1] + tone_waves[2];
+    assign uo_out = channels[0] + channels[1] + channels[2] + channels[3];
 
 endmodule
