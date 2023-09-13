@@ -20,6 +20,15 @@ async def test_psg(dut):
     for i in range(32):
         await ClockCycles(dut.clk, 1)
         print(
+            #dut.tt_um_rejunity_sn76489_uut.noise.lfsr.value,
+            #dut.uio_out.value,
+            dut.uo_out.value)
+
+    dut._log.info("clock x32 speedup")
+    for i in range(32):
+        await ClockCycles(dut.clk, 32)
+        print(
+            #dut.tt_um_rejunity_sn76489_uut.noise.lfsr.value,
             #dut.uio_out.value,
             dut.uo_out.value)
 
