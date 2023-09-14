@@ -16,6 +16,27 @@ async def test_psg(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
+    dut._log.info("init")
+    # tones
+    dut.ui_in.value = 0b1001_1110 # attn[0] <= 4'b1110;
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1011_1110
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1101_1110
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1111_1110
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1000_0011 # freq[0] <= 3;
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1010_0001 # freq[1] <= 1;
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1100_0000 # freq[2] <= 0;
+    await ClockCycles(dut.clk, 1)
+    # noise
+    dut.ui_in.value = 0b1110_0111 # noise[0] <=  3'b111;
+    await ClockCycles(dut.clk, 1)
+            
+
     dut._log.info("run")
     for i in range(32):
         await ClockCycles(dut.clk, 1)

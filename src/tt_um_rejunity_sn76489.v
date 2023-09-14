@@ -36,19 +36,14 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
     always @(posedge clk) begin
         if (reset) begin
-            // control_attn[0] <= 4'b1;
-            // control_attn[1] <= 4'b10;
-            // control_attn[2] <= 4'b100;
-            // control_attn[3] <= 4'b1000;
-            control_attn[0] <= 4'b1110;
-            control_attn[1] <= 4'b1110;
-            control_attn[2] <= 4'b1110;
-            control_attn[3] <= 4'b1110;
-            control_tone_freq[0] <= 3;
-            control_tone_freq[1] <= 1;
+            control_attn[0] <= 4'b1111;
+            control_attn[1] <= 4'b1111;
+            control_attn[2] <= 4'b1111;
+            control_attn[3] <= 4'b1111;
+            control_tone_freq[0] <= 0;
+            control_tone_freq[1] <= 0;
             control_tone_freq[2] <= 0;
-
-            control_noise[0] <= 3'b111;
+            control_noise[0] <= 3'b100;
 
             latch_control_reg <= 0;
             reset_noise <= 0;
