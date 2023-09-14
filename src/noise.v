@@ -1,14 +1,12 @@
-module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
+module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10 ) (
     input  wire clk,
     input  wire reset,
     input  wire reset_lfsr,
 
     input  wire [COUNTER_BITS-1:0]  compare,
     input  wire is_white_noise,
-    input  wire [VALUE_BITS-1:0]    value,
 
-    output wire [VALUE_BITS-1:0]    out
-    //output wire  out
+    output wire  out
 );
 
     reg [COUNTER_BITS-1:0] counter;
@@ -36,8 +34,7 @@ module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10, parameter
         end
     end
 
-    //assign out = lfsr[0];
-    assign out = value & {VALUE_BITS{lfsr[0]}};
+    assign out = lfsr[0];
 endmodule
 
 module noise_control_decoder #( parameter COUNTER_BITS = 10 ) (

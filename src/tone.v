@@ -1,11 +1,10 @@
-module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
+module tone #( parameter COUNTER_BITS = 10 ) (
     input  wire clk,
     input  wire reset,
 
     input  wire [COUNTER_BITS-1:0]  compare,
-    input  wire [VALUE_BITS-1:0]    value,
 
-    output wire [VALUE_BITS-1:0]    out
+    output wire out
 );
     reg [COUNTER_BITS-1:0] counter;
     reg state;
@@ -23,5 +22,5 @@ module tone #( parameter COUNTER_BITS = 10, parameter VALUE_BITS = 4 ) (
         end
     end
 
-    assign out = value & {VALUE_BITS{state}};
+    assign out = state;
 endmodule
