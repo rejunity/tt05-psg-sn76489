@@ -91,6 +91,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
         end
     endgenerate
 
+    // sum up all the channels, clamp to the highest value when overflown
     localparam OVERFLOW_BITS = $clog2(NUM_CHANNELS);
     localparam ACCUMULATOR_BITS = CHANNEL_OUTPUT_BITS + OVERFLOW_BITS;
     wire [ACCUMULATOR_BITS-1:0] master;
