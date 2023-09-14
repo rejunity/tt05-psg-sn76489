@@ -6,6 +6,7 @@ project:
 # If using an HDL, set wokwi_id as 0 and uncomment and list your source files here. 
 # Source files must be in ./src and you must list each source file separately
   source_files:
+    - attenuation.v
     - tone.v
     - noise.v
     - tt_um_rejunity_sn76489.v

@@ -75,7 +75,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) noise (
                 .clk(clk),
                 .reset(reset),
-                //.reset_lfsr( TODO )
+                .reset_lfsr(0), // %TODO: !!!
                 .compare(noise_freq),
                 .is_white_noise(noise_type),
                 .out(channels[NUM_TONES+i])
