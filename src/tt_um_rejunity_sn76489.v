@@ -4,8 +4,8 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
                                  parameter ATTENUATION_CONTROL_BITS = 4,
                                  parameter FREQUENCY_COUNTER_BITS = 10, 
                                  parameter NOISE_CONTROL_BITS = 3,
-                                 parameter CHANNEL_OUTPUT_BITS = 10,
-                                 parameter MASTER_OUTPUT_BITS = 8
+                                 parameter CHANNEL_OUTPUT_BITS = 8,
+                                 parameter MASTER_OUTPUT_BITS = 7
 ) (
     input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
     output wire [7:0] uo_out,   // Dedicated outputs - connected to the 7 segment display
