@@ -54,7 +54,7 @@ module noise_control_decoder #( parameter COUNTER_BITS = 10 ) (
             2'b01:  noise_freq = 64;    // = 1024/16
             2'b10:  noise_freq = 128;   // = 2048/16
             2'b11:                      // = tone_freq*2
-                    noise_freq = {tone_freq[COUNTER_BITS-1:1], 1'b0};
+                    noise_freq = {tone_freq[COUNTER_BITS-2:0], 1'b0};
         endcase
         // FB bit
         noise_type = control[2];
