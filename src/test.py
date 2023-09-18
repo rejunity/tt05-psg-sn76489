@@ -2,7 +2,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
-
+import os
 
 @cocotb.test()
 async def test_psg(dut):
@@ -17,40 +17,89 @@ async def test_psg(dut):
     dut.rst_n.value = 1
 
     dut._log.info("init")
-    # tones
-    dut.ui_in.value = 0b1001_1110 # attn[0] <= 4'b1110;
+    # tones init
+    # dut.ui_in.value = 0b1001_1110 # attn[0] <= 4'b1110;
+    # await ClockCycles(dut.clk, 1)
+    # dut.ui_in.value = 0b1011_1110
+    # await ClockCycles(dut.clk, 1)
+    # dut.ui_in.value = 0b1101_1110
+    # await ClockCycles(dut.clk, 1)
+    # dut.ui_in.value = 0b1111_1110
+    # await ClockCycles(dut.clk, 1)
+    # dut.ui_in.value = 0b1000_0011 # freq[0] <= 3
+    # await ClockCycles(dut.clk, 1)
+    # dut.ui_in.value = 0b1010_0001 # freq[1] <= 1
+    # await ClockCycles(dut.clk, 1)
+    # dut.ui_in.value = 0b1100_0000 # freq[2] <= 0
+    # await ClockCycles(dut.clk, 1)
+    # # noise init
+    # dut.ui_in.value = 0b1110_0111 # noise[0] <=  3'b111
+    # await ClockCycles(dut.clk, 1)
+    
+    dut._log.info("run")
+    dut.ui_in.value = 0b1001_1111 # attn[0] <= 4'b1110
     await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1011_1110
+    dut.ui_in.value = 0b1011_1111 # attn[1] <= 4'b1111
     await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1101_1110
+    dut.ui_in.value = 0b1101_1111
     await ClockCycles(dut.clk, 1)
     dut.ui_in.value = 0b1111_1110
     await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1000_0011 # freq[0] <= 3;
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1010_0001 # freq[1] <= 1;
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1100_0000 # freq[2] <= 0;
-    await ClockCycles(dut.clk, 1)
-    # noise
-    dut.ui_in.value = 0b1110_0111 # noise[0] <=  3'b111;
-    await ClockCycles(dut.clk, 1)
-            
 
-    dut._log.info("run")
-    for i in range(32):
+    dut.ui_in.value = 0b1110_0111 # noise[0] <=  3'b111
+    await ClockCycles(dut.clk, 1)
+    dut.ui_in.value = 0b1100_0001 # freq[2] <= 0
+    await ClockCycles(dut.clk, 1)
+    
+    # print(os.environ['GATES'])
+
+    dut._log.info("test freq 1")
+    dut.ui_in.value = 0b1000_0001 # freq[0] <= 1
+    for i in range(8):
+        print(
+            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.lfsr.value,
+            dut.uo_out.value)
         await ClockCycles(dut.clk, 1)
-        print(
-            #dut.tt_um_rejunity_sn76489_uut.noise.lfsr.value,
-            #dut.uio_out.value,
-            dut.uo_out.value)
 
-    dut._log.info("clock x32 speedup")
-    for i in range(32):
-        await ClockCycles(dut.clk, 32)
+    dut._log.info("test freq 0")
+    dut.ui_in.value = 0b1000_0000 # freq[0] <= 0
+    for i in range(16):
         print(
-            #dut.tt_um_rejunity_sn76489_uut.noise.lfsr.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.lfsr.value,
             #dut.uio_out.value,
             dut.uo_out.value)
+        await ClockCycles(dut.clk, 1)
+
+    dut._log.info("clock x64 speedup")
+    for i in range(32):
+        print(
+            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.compare.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.counter.value,
+            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.lfsr.value,
+            #dut.uio_out.value,
+            dut.uo_out.value)
+        await ClockCycles(dut.clk, 64)
 
     dut._log.info("done")

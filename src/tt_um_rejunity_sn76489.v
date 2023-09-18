@@ -40,9 +40,9 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             control_attn[1] <= 4'b1111;
             control_attn[2] <= 4'b1111;
             control_attn[3] <= 4'b1111;
-            control_tone_freq[0] <= 0;
-            control_tone_freq[1] <= 0;
-            control_tone_freq[2] <= 0;
+            control_tone_freq[0] <= 1;
+            control_tone_freq[1] <= 1;
+            control_tone_freq[2] <= 1;
             control_noise[0] <= 3'b100;
 
             latch_control_reg <= 0;
@@ -84,10 +84,28 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     wire                           channels [NUM_CHANNELS-1:0];
     wire [CHANNEL_OUTPUT_BITS-1:0] volumes  [NUM_CHANNELS-1:0];
 
+    // tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone0 (
+    //     .clk(clk),
+    //     .reset(reset),
+    //     .compare(control_tone_freq[0]),
+    //     .out(channels[0]));
+
+    // tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone1 (
+    //     .clk(clk),
+    //     .reset(reset),
+    //     .compare(control_tone_freq[1]),
+    //     .out(channels[1]));
+
+    // tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone2 (
+    //     .clk(clk),
+    //     .reset(reset),
+    //     .compare(control_tone_freq[2]),
+    //     .out(channels[2]));
+
     genvar i;
     generate
-        for (i = 0; i < NUM_TONES; i = i + 1) begin
-            tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone (
+        for (i = 0; i < NUM_TONES; i = i + 1) begin : tone
+            tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
                 .reset(reset),
                 .compare(control_tone_freq[i]),
@@ -95,7 +113,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
                 );
         end
 
-        for (i = 0; i < NUM_NOISES; i = i + 1) begin
+        for (i = 0; i < NUM_NOISES; i = i + 1) begin : noise
             wire noise_type;
             wire [FREQUENCY_COUNTER_BITS-1:0] noise_freq;
             noise_control_decoder #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) noise_control_decoder (
@@ -105,7 +123,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
                 .noise_freq(noise_freq)
                 );
 
-            noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) noise (
+            noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
                 .reset(reset),
                 .reset_lfsr(reset_noise),
