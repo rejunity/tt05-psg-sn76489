@@ -1,10 +1,10 @@
 // For the SMS (1 and 2), Genesis and Game Gear, the tapped bits are bits 0 and 3 ($0009), fed back into bit 15.
 // For the SG-1000, OMV, SC-3000H, BBC Micro and Colecovision, the tapped bits are bits 0 and 1 ($0003), fed back into bit 14.
 // For the Tandy 1000, the tapped bits are bits 0 and 4 ($0011), fed back into bit 14.    
-module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, parameter COUNTER_BITS = 10) (
+module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, parameter COUNTER_BITS = 10 ) (
     input  wire clk,
     input  wire reset,
-    input  wire reset_lfsr,
+    input  wire restart_noise,
 
     input  wire [2:0] control,
     input  wire [COUNTER_BITS-1:0] tone_freq,
@@ -14,13 +14,8 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
     localparam MASTER_CLOCK = 16;
     localparam TONE_DIV_2 = 2;
 
-    reg [LFSR_BITS-1:0] lfsr;
-    reg is_white_noise;
     reg [COUNTER_BITS-1:0] noise_freq;
     always @(posedge clk) begin
-        if (reset | reset_lfsr)
-            lfsr <= 1'b1 << (LFSR_BITS-1);
-
         // NF0, NF1 bits
         case(control[1:0])
             2'b00:  noise_freq <= 512 /MASTER_CLOCK/TONE_DIV_2;
@@ -39,11 +34,18 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
         .compare(noise_freq),
         .out(noise_trigger));
 
-    always @(posedge noise_trigger) begin
-        if (is_white_noise) begin
-            lfsr <= {lfsr[LFSR_TAP0] ^ lfsr[LFSR_TAP1], lfsr[LFSR_BITS-1:1]};
+    reg is_white_noise;
+    reg [LFSR_BITS-1:0] lfsr;
+    assign reset_lfsr = reset | restart_noise;
+    always @(posedge noise_trigger, posedge reset_lfsr) begin
+        if (reset_lfsr) begin
+            lfsr <= 1'b1 << (LFSR_BITS-1);
         end else begin
-            lfsr <= {lfsr[LFSR_TAP0]                  , lfsr[LFSR_BITS-1:1]};
+            if (is_white_noise) begin
+                lfsr <= {lfsr[LFSR_TAP0] ^ lfsr[LFSR_TAP1], lfsr[LFSR_BITS-1:1]};
+            end else begin
+                lfsr <= {lfsr[LFSR_TAP0]                  , lfsr[LFSR_BITS-1:1]};
+            end
         end
     end
 

@@ -32,7 +32,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     reg [FREQUENCY_COUNTER_BITS-1:0]    control_tone_freq[NUM_TONES-1:0];
     reg [NOISE_CONTROL_BITS-1:0]        control_noise[NUM_NOISES-1:0];
     reg [2:0] latch_control_reg;
-    reg reset_noise;
+    reg restart_noise;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -46,9 +46,9 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             control_noise[0] <= 3'b100;
 
             latch_control_reg <= 0;
-            reset_noise <= 0;
+            restart_noise <= 0;
         end else begin
-            reset_noise <= 0;
+            restart_noise <= 0;
             if (data[7] == 1'b1) begin
                 case(data[6:4])
                     3'b000 : control_tone_freq[0][3:0] <= data[3:0];
@@ -57,7 +57,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
                     3'b110 : 
                         begin 
                             control_noise[0] <= data[2:0];
-                            reset_noise <= 1;
+                            restart_noise <= 1;
                         end
                     3'b001 : control_attn[0] <= data[3:0];
                     3'b011 : control_attn[1] <= data[3:0];
@@ -126,7 +126,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             // noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
             //     .clk(clk),
             //     .reset(reset),
-            //     .reset_lfsr(reset_noise),
+            //     .reset_lfsr(restart_noise),
             //     .compare(noise_freq),
             //     .is_white_noise(noise_type),
             //     .out(channels[NUM_TONES+i])
@@ -135,7 +135,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
                 .reset(reset),
-                .reset_lfsr(reset_noise),
+                .restart_noise(restart_noise),
                 .control(control_noise[i]),
                 .tone_freq(control_tone_freq[NUM_TONES-1]), // last tone frequency
                 .out(channels[NUM_TONES+i])
