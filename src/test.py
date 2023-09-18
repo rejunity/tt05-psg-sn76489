@@ -4,18 +4,23 @@ from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
 def print_chip_state(dut):
     try:
+        internal = dut.tt_um_rejunity_sn76489_uut
         print(
-            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.compare.value,
-            dut.tt_um_rejunity_sn76489_uut.tone[0].gen.counter.value, "|",
-            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.compare.value,
-            dut.tt_um_rejunity_sn76489_uut.tone[1].gen.counter.value, "|",
-            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.compare.value,
-            dut.tt_um_rejunity_sn76489_uut.tone[2].gen.counter.value, "!",
-            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.control,
-            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.reset_lfsr,
-            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.tone.compare.value,
-            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.tone.counter.value,
-            dut.tt_um_rejunity_sn76489_uut.noise[0].gen.lfsr.value, ">>",
+            '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
+            '{:4d}'.format(int(internal.tone[0].gen.counter.value)),
+                        "|#|" if internal.tone[0].gen.out == 1 else "|-|", # "|",
+            '{:4d}'.format(int(internal.tone[1].gen.compare.value)),
+            '{:4d}'.format(int(internal.tone[1].gen.counter.value)),
+                        "|#|" if internal.tone[1].gen.out == 1 else "|-|",  #"|",
+            '{:4d}'.format(int(internal.tone[2].gen.compare.value)),
+            '{:4d}'.format(int(internal.tone[2].gen.counter.value)),
+                        "|#|" if internal.tone[2].gen.out == 1 else "|-|",  #"!",
+            internal.noise[0].gen.control.value,
+            internal.noise[0].gen.reset_lfsr.value,
+            '{:4d}'.format(int(internal.noise[0].gen.tone.compare.value)),
+            '{:4d}'.format(int(internal.noise[0].gen.tone.counter.value)),
+                        ">" if internal.noise[0].gen.tone.out == 1 else " ",
+            internal.noise[0].gen.lfsr.value, ">>",
             dut.uo_out.value)
     except:
         print(dut.uo_out.value)
@@ -75,7 +80,7 @@ async def test_psg(dut):
 
     print_chip_state(dut)
 
-    dut._log.info("warmup")
+    dut._log.info("warmup 4 cycles")
     await ClockCycles(dut.clk, 1)
     print_chip_state(dut)
     await ClockCycles(dut.clk, 1)
@@ -84,7 +89,10 @@ async def test_psg(dut):
     print_chip_state(dut)
     await ClockCycles(dut.clk, 1)
     print_chip_state(dut)
-    await ClockCycles(dut.clk, 0x400)    
+    dut._log.info("warmup 0x400 cycles")
+    await ClockCycles(dut.clk, 0x400-6)
+    print_chip_state(dut)
+    await ClockCycles(dut.clk, 2)
     print_chip_state(dut)
 
     dut._log.info("test freq 1")
