@@ -1,4 +1,4 @@
-module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10 ) (
+module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, parameter COUNTER_BITS = 10) (
     input  wire clk,
     input  wire reset,
     input  wire reset_lfsr,
@@ -22,15 +22,15 @@ module noise #( parameter LFSR_BITS = 15, parameter COUNTER_BITS = 10 ) (
         end else if (reset_lfsr) begin
             lfsr <= 1'b1 << (LFSR_BITS-1);
         end else begin
-            if (counter == compare) begin
-                counter <= 0;               // reset counter
+            if (counter == 0) begin
+                counter <= compare - 1'b1;  // reset counter
                 if (is_white_noise) begin
-                    lfsr <= {lfsr[0] ^ lfsr[1], lfsr[LFSR_BITS-1:1]};
+                    lfsr <= {lfsr[LFSR_TAP0] ^ lfsr[LFSR_TAP1], lfsr[LFSR_BITS-1:1]};
                 end else begin
-                    lfsr <= {lfsr[0]          , lfsr[LFSR_BITS-1:1]};
+                    lfsr <= {lfsr[LFSR_TAP0]                  , lfsr[LFSR_BITS-1:1]};
                 end
             end else
-                counter <= counter + 1'b1;  // increment counter
+                counter <= counter - 1'b1;
         end
     end
 
