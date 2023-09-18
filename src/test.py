@@ -40,44 +40,21 @@ async def test_psg(dut):
     print_chip_state(dut)
 
     dut._log.info("init")
-    # tones init
-    # dut.ui_in.value = 0b1001_1110 # attn[0] <= 4'b1110;
-    # await ClockCycles(dut.clk, 1)
-    # dut.ui_in.value = 0b1011_1110
-    # await ClockCycles(dut.clk, 1)
-    # dut.ui_in.value = 0b1101_1110
-    # await ClockCycles(dut.clk, 1)
-    # dut.ui_in.value = 0b1111_1110
-    # await ClockCycles(dut.clk, 1)
-    # dut.ui_in.value = 0b1000_0011 # freq[0] <= 3
-    # await ClockCycles(dut.clk, 1)
-    # dut.ui_in.value = 0b1010_0001 # freq[1] <= 1
-    # await ClockCycles(dut.clk, 1)
-    # dut.ui_in.value = 0b1100_0000 # freq[2] <= 0
-    # await ClockCycles(dut.clk, 1)
-    # # noise init
-    # dut.ui_in.value = 0b1110_0111 # noise[0] <=  3'b111
-    # await ClockCycles(dut.clk, 1)
-                                    # attenuation
-    dut.ui_in.value = 0b1001_1111   # channel 0
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1011_1111   # channel 1
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1101_1111   # channel 2
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1111_1111   # channel 3
-    await ClockCycles(dut.clk, 1)
-                                    # frequency
-    dut.ui_in.value = 0b1000_0001   # tone 0
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1010_0001   # tone 1
-    await ClockCycles(dut.clk, 1)
-    dut.ui_in.value = 0b1100_0001   # tone 2
-    await ClockCycles(dut.clk, 1)
-
-    dut.ui_in.value = 0b1110_0111 # noise[0] <=  3'b111
-    await ClockCycles(dut.clk, 1)
-
+    for val in [
+        # attenuation
+        0b1_00_1_1111,  # channel 0
+        0b1_01_1_1111,  # channel 1
+        0b1_10_1_1111,  # channel 2
+        0b1_11_1_1111,  # channel 3
+        # frequency
+        0b1_00_0_0001,  # tone 0
+        0b1_01_0_0001,  # tone 1
+        0b1_10_0_0001,  # tone 2
+        # noise
+        0b1_11_0_0111,  # noise 0
+    ]:
+        dut.ui_in.value = val
+        await ClockCycles(dut.clk, 1)    
     print_chip_state(dut)
 
     dut._log.info("warmup 4 cycles")
@@ -89,9 +66,11 @@ async def test_psg(dut):
     print_chip_state(dut)
     await ClockCycles(dut.clk, 1)
     print_chip_state(dut)
+    
     dut._log.info("warmup 1018 cycles")
     await ClockCycles(dut.clk, 0x400-6)
     print_chip_state(dut)
+    
     dut._log.info("warmup last 2 cycles")
     await ClockCycles(dut.clk, 1)
     print_chip_state(dut)
@@ -99,13 +78,13 @@ async def test_psg(dut):
     print_chip_state(dut)
 
     dut._log.info("test freq 1")
-    dut.ui_in.value = 0b1000_0001 # freq[0] <= 1
+    dut.ui_in.value = 0b1_00_0_0001     # tone 0 <- 1
     for i in range(8):
         print_chip_state(dut)
         await ClockCycles(dut.clk, 1)
 
     dut._log.info("test freq 0")
-    dut.ui_in.value = 0b1000_0000 # freq[0] <= 0
+    dut.ui_in.value = 0b1_00_0_0000     # tone 0 <- 0
     for i in range(16):
         print_chip_state(dut)
         await ClockCycles(dut.clk, 1)
