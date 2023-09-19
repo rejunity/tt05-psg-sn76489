@@ -14,6 +14,7 @@ Osciloscope recordings
 
 Chip decap images
 * https://siliconpr0n.org/map/ti/sn76489an/
+* https://github.com/gchiasso/76489A-analysis partially analysed
 
 Implementations
 * https://github.com/OpenVGS/OPSG
