@@ -21,7 +21,8 @@ def print_chip_state(dut):
             '{:4d}'.format(int(internal.noise[0].gen.tone.counter.value)),
                         ">" if internal.noise[0].gen.tone.out == 1 else " ",
             internal.noise[0].gen.lfsr.value, ">>",
-            dut.uo_out.value)
+            '{:3d}'.format(int(dut.uo_out.value >> 1)),
+                        "@" if dut.uo_out[0].value == 1 else ".")
     except:
         print(dut.uo_out.value)
 
@@ -42,10 +43,10 @@ async def test_psg(dut):
     dut._log.info("init")
     for val in [
         # attenuation
-        0b1_00_1_1111,  # channel 0
+        0b1_00_1_1110,  # channel 0
         0b1_01_1_1111,  # channel 1
         0b1_10_1_1111,  # channel 2
-        0b1_11_1_1111,  # channel 3
+        0b1_11_1_1110,  # channel 3
         # frequency
         0b1_00_0_0001,  # tone 0
         0b1_01_0_0001,  # tone 1

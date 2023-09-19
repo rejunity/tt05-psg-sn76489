@@ -9,6 +9,7 @@ project:
     - attenuation.v
     - tone.v
     - noise.v
+    - pwm.v
     - tt_um_rejunity_sn76489.v
   top_module:  "tt_um_rejunity_sn76489"      # Put the name of your top module here, must start with "tt_um_". Make it unique by including your github username
 
@@ -47,7 +48,7 @@ documentation:
     - data7
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
-    - snd_out
+    - snd_out (pwm)
     - none
     - none
     - none
