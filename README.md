@@ -9,6 +9,9 @@ Info
 * https://www.smspower.org/Development/SN76489
 * http://www.acornatom.nl/sites/atomreview/howel/parts/76489.htm
 
+Osciloscope recordings
+* https://scarybeastsecurity.blogspot.com/2020/06/sampled-sound-1980s-style-from-sn76489.html
+
 Chip decap images
 * https://siliconpr0n.org/map/ti/sn76489an/
 
