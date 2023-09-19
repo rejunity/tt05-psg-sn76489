@@ -16,6 +16,7 @@ Implementations
 * https://github.com/OpenVGS/OPSG
 * https://github.com/dnotq/sn76489_audio
 * https://github.com/mamedev/mame/blob/master/src/devices/sound/sn76496.cpp
+* https://github.com/digital-sound-antiques/emu76489
 * https://github.com/nukeykt/Nuked-PSG based on YM7101 decap 
 
 
