@@ -1,6 +1,6 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg)
 
-# SN76489 PSG
+# SN76489 PSG in Verilog for Tiny Tapeout 5 (WIP)
 
 Info
 * https://en.wikipedia.org/wiki/Texas_Instruments_SN76489
