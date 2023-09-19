@@ -9,6 +9,9 @@ Info
 * https://www.smspower.org/Development/SN76489
 * http://www.acornatom.nl/sites/atomreview/howel/parts/76489.htm
 
+Chip decap images
+* https://siliconpr0n.org/map/ti/sn76489an/
+
 Implementations
 * https://github.com/OpenVGS/OPSG
 * https://github.com/dnotq/sn76489_audio
