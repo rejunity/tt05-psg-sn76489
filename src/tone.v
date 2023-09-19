@@ -1,3 +1,13 @@
+
+// https://www.smspower.org/forums/17191-SG1000HardwareQuestions#103500
+// Posted: Sun Sep 16, 2018 5:03 pm
+//
+// Frequency value of $000 produces (MCLK / 32) / $400 output frequency on TI 
+// PSG while on VDP it produces (MCLK / 32) / $001. Volume and frequency writes 
+// do not reset the phase of tone channels but frequency writes will reset phase 
+// of noise channel. It is possible to keep noise channel output permanently low 
+// by writing into frequency register. All writes take effect immediately.
+
 module tone #( parameter COUNTER_BITS = 10 ) (
     input  wire clk,
     input  wire reset,
