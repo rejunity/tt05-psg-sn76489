@@ -21,7 +21,14 @@ Implementations
 * https://github.com/dnotq/sn76489_audio
 * https://github.com/mamedev/mame/blob/master/src/devices/sound/sn76496.cpp
 * https://github.com/digital-sound-antiques/emu76489
-* https://github.com/nukeykt/Nuked-PSG based on YM7101 decap 
+* https://github.com/nukeykt/Nuked-PSG based on YM7101 decap
+
+Music playback!
+* https://github.com/simondotm/vgm-converter convert from VGM file format to 50Hz resampled raw stream of data
+* https://www.stairwaytohell.com/music/index.html?page=vgmarchive Music from several BBC Micro games
+* https://vgmrips.net/packs/system/tandy-corporation/tandy-1000 Music from several Tandy 100 games
+* https://vgmrips.net/packs/system/sega/sg-1000 Sound effects from several Sega SG1000 games
+
 
 
 ## What is Tiny Tapeout?
