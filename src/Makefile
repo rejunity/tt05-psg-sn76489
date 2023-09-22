@@ -30,7 +30,7 @@ endif
 TOPLEVEL = tb
 
 # MODULE is the basename of the Python test file
-MODULE = test
+MODULE ?= test
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
