@@ -1,3 +1,4 @@
+/* verilator lint_off REALCVT */
 
 module attenuation #( parameter CONTROL_BITS = 4, parameter VOLUME_BITS = 15 ) (
     input  wire in,
