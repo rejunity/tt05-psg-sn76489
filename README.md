@@ -18,6 +18,7 @@ Chip decap images
 
 Implementations
 * https://github.com/OpenVGS/OPSG
+* https://github.com/jotego/jt89
 * https://github.com/dnotq/sn76489_audio
 * https://github.com/mamedev/mame/blob/master/src/devices/sound/sn76496.cpp
 * https://github.com/digital-sound-antiques/emu76489
