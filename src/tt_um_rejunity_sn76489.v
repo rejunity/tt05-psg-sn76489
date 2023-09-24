@@ -1,3 +1,4 @@
+/* verilator lint_off WIDTH */
 `default_nettype none
 
 module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 1,
