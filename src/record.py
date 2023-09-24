@@ -13,11 +13,11 @@ def print_chip_state(dut):
             '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[0].gen.counter.value)),
                         "|#|" if internal.tone[0].gen.out == 1 else "|-|", # "|",
-            '{:2d}'.format(int(internal.chan[0].attenuation.control.value)),
+            '{:2d}'.format(int(internal.chan[1].attenuation.control.value)),
             '{:4d}'.format(int(internal.tone[1].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[1].gen.counter.value)),
                         "|#|" if internal.tone[1].gen.out == 1 else "|-|",  #"|",
-            '{:2d}'.format(int(internal.chan[0].attenuation.control.value)),
+            '{:2d}'.format(int(internal.chan[2].attenuation.control.value)),
             '{:4d}'.format(int(internal.tone[2].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[2].gen.counter.value)),
                         "|#|" if internal.tone[2].gen.out == 1 else "|-|",  #"!",
@@ -28,7 +28,7 @@ def print_chip_state(dut):
             '{:4d}'.format(int(internal.noise[0].gen.tone.counter.value)),
                         ">" if internal.noise[0].gen.tone.out == 1 else " ",
             internal.noise[0].gen.lfsr.value, ">>",
-            '{:3d}'.format(int(dut.uo_out.value >> 1)),
+            '{:3d}'.format(int(dut.uo_out.value)),
                         "@" if dut.uo_out[0].value == 1 else ".")
     except:
         print(dut.uo_out.value)
@@ -98,7 +98,8 @@ async def play_and_record_wav(dut):
     samples = []
     n = 0
     for frame in music:
-        print("---", n, len(samples), "---", [format(d, '08b') for d in frame])
+        cur_time = cocotb.utils.get_sim_time(units="ns")
+        print("---", n, len(samples), "---", [format(d, '08b') for d in frame], "---", "time in ms:", format(cur_time/1e6, "5.3f"),)
         for val in frame:
             dut.ui_in.value = val
             await ClockCycles(dut.clk, 1)
@@ -106,18 +107,22 @@ async def play_and_record_wav(dut):
 
         #ns = cycles_per_frame * cycle_in_nanoseconds while ns > 0:
 
-        i = cycles_per_frame - len(frame)
-        carry = 0
-        while i > 0:
-            i -= int(cycles_per_sample + carry)
-            await ClockCycles(dut.clk, int(cycles_per_sample + carry))
-            carry = cycles_per_sample + carry - int(cycles_per_sample + carry)
-            # samples.append(int(dut.uo_out.value & 0xfe) << 8)
-            samples.append(int(dut.uo_out.value) * 32)
-            assert int(dut.uo_out.value) * 32 < 65535
-            assert int(dut.uo_out.value) * 32 >= 0
-        print_chip_state(dut)
+        # i = cycles_per_frame - len(frame)
+        # carry = 0
+        # while i > 0:
+        #     i -= int(cycles_per_sample + carry)
+        #     await ClockCycles(dut.clk, int(cycles_per_sample + carry))
+        #     carry = cycles_per_sample + carry - int(cycles_per_sample + carry)
+        #     samples.append(int(dut.uo_out.value) * 32)
+        #     assert int(dut.uo_out.value) * 32 < 65535
+        #     assert int(dut.uo_out.value) * 32 >= 0
+        # print_chip_state(dut)
 
+
+        while cocotb.utils.get_sim_time(units="ns") < cur_time + (1e9 / fps):
+            await Timer(nanoseconds_per_sample, units="ns", round_mode="round")
+            samples.append(int(dut.uo_out.value) * 64)
+        print_chip_state(dut)
 
         # for i in range(int(cycles_per_frame / cycles_per_sample)):
         #     await ClockCycles(dut.clk, int(cycles_per_sample))
@@ -128,11 +133,10 @@ async def play_and_record_wav(dut):
         #     assert int(dut.uo_out.value) * 64 >= 0
         # print_chip_state(dut)
 
-        if n == fps:
-            
+        if n < fps:
+            n += 1
+        else:            
             write('test.wav', sampling_rate, np.int16(samples))
             n = 0
-        else:
-            n += 1
 
     await ClockCycles(dut.clk, 1)
