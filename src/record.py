@@ -2,8 +2,10 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
+import os
 import numpy as np
 from scipy.io.wavfile import write
+
 
 def print_chip_state(dut):
     try:
@@ -67,9 +69,11 @@ def load_music(filename, verbose=False):
 async def play_and_record_wav(dut):
     samples = []
     # raw_sn76489_stream = "../music/DonkeyKongJunior-ingame.bbc50hz.bin"
-    raw_sn76489_stream = "../music/1942.bbc50hz.sn76489.bin"
-    # raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
+    # raw_sn76489_stream = "../music/1942.bbc50hz.sn76489.bin"
+    raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
     music, playback_rate = load_music(raw_sn76489_stream)
+    wave_filename = os.path.basename(raw_sn76489_stream).rstrip(".bin") + ".wav"
+    print(raw_sn76489_stream, "->", wave_filename)
 
     master_clock = 4_000_000 // 16
     fps = playback_rate
@@ -136,7 +140,7 @@ async def play_and_record_wav(dut):
         if n < fps:
             n += 1
         else:            
-            write('test.wav', sampling_rate, np.int16(samples))
+            write(wave_filename, sampling_rate, np.int16(samples))
             n = 0
 
     await ClockCycles(dut.clk, 1)
