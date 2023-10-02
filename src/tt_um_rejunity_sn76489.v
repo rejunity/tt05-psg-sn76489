@@ -5,8 +5,11 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
                                  parameter ATTENUATION_CONTROL_BITS = 4,
                                  parameter FREQUENCY_COUNTER_BITS = 10, 
                                  parameter NOISE_CONTROL_BITS = 3,
-                                 parameter CHANNEL_OUTPUT_BITS = 8,
-                                 parameter MASTER_OUTPUT_BITS = 7
+                                 // parameter CHANNEL_OUTPUT_BITS = 8,
+                                 // parameter MASTER_OUTPUT_BITS = 7
+                                 // parameter CHANNEL_OUTPUT_BITS = 6,
+                                 parameter CHANNEL_OUTPUT_BITS = 15,
+                                 parameter MASTER_OUTPUT_BITS = 8
 ) (
     input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
     output wire [7:0] uo_out,   // Dedicated outputs - connected to the 7 segment display
@@ -17,10 +20,11 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
-    assign uio_oe[7:0] = {8{1'b1}}; // Bidirectional path set to output
+    assign uio_oe[7:0] = 8'b1111_1110; // Bidirectional path set to output, except the first /WE pin
     assign uio_out[7:0] = {8{1'b0}};
     wire reset = ! rst_n;
 
+    wire we = ! uio_in[0];
     wire [7:0] data;
     assign data = ui_in;
 
@@ -50,34 +54,36 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
             restart_noise <= 0;
         end else begin
             restart_noise <= 0;
-            if (data[7] == 1'b1) begin
-                case(data[6:4])
-                    3'b000 : control_tone_freq[0][3:0] <= data[3:0];
-                    3'b010 : control_tone_freq[1][3:0] <= data[3:0];
-                    3'b100 : control_tone_freq[2][3:0] <= data[3:0];
-                    3'b110 : 
-                        begin 
-                            control_noise[0] <= data[2:0];
-                            restart_noise <= 1;
-                        end
-                    3'b001 : control_attn[0] <= data[3:0];
-                    3'b011 : control_attn[1] <= data[3:0];
-                    3'b101 : control_attn[2] <= data[3:0];
-                    3'b111 : control_attn[3] <= data[3:0];
-                    default : begin end
-                endcase
-                latch_control_reg <= data[6:4];
-            end else begin
-                case(latch_control_reg)
-                    3'b000 : control_tone_freq[0][9:4] <= data[5:0];
-                    3'b010 : control_tone_freq[1][9:4] <= data[5:0];
-                    3'b100 : control_tone_freq[2][9:4] <= data[5:0];
-                    3'b001 : control_attn[0] <= data[3:0];
-                    3'b011 : control_attn[1] <= data[3:0];
-                    3'b101 : control_attn[2] <= data[3:0];
-                    3'b111 : control_attn[3] <= data[3:0];
-                    default : begin end
-                endcase
+            if (we) begin
+                if (data[7] == 1'b1) begin
+                    case(data[6:4])
+                        3'b000 : control_tone_freq[0][3:0] <= data[3:0];
+                        3'b010 : control_tone_freq[1][3:0] <= data[3:0];
+                        3'b100 : control_tone_freq[2][3:0] <= data[3:0];
+                        3'b110 : 
+                            begin 
+                                control_noise[0] <= data[2:0];
+                                restart_noise <= 1;
+                            end
+                        3'b001 : control_attn[0] <= data[3:0];
+                        3'b011 : control_attn[1] <= data[3:0];
+                        3'b101 : control_attn[2] <= data[3:0];
+                        3'b111 : control_attn[3] <= data[3:0];
+                        default : begin end
+                    endcase
+                    latch_control_reg <= data[6:4];
+                end else begin
+                    case(latch_control_reg)
+                        3'b000 : control_tone_freq[0][9:4] <= data[5:0];
+                        3'b010 : control_tone_freq[1][9:4] <= data[5:0];
+                        3'b100 : control_tone_freq[2][9:4] <= data[5:0];
+                        3'b001 : control_attn[0] <= data[3:0];
+                        3'b011 : control_attn[1] <= data[3:0];
+                        3'b101 : control_attn[2] <= data[3:0];
+                        3'b111 : control_attn[3] <= data[3:0];
+                        default : begin end
+                    endcase
+                end
             end
         end
     end
@@ -152,19 +158,22 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
         end
     endgenerate
 
+    // assign uo_out[7:0] = (volumes[0] + volumes[1] + volumes[2] + volumes[3]);
 
     // sum up all the channels, clamp to the highest value when overflown
     localparam OVERFLOW_BITS = $clog2(NUM_CHANNELS);
     localparam ACCUMULATOR_BITS = CHANNEL_OUTPUT_BITS + OVERFLOW_BITS;
     wire [ACCUMULATOR_BITS-1:0] master;
     assign master = (volumes[0] + volumes[1] + volumes[2] + volumes[3]);
-    assign uo_out[7:1] = (master[ACCUMULATOR_BITS-1 -: OVERFLOW_BITS] == 0) ? master[CHANNEL_OUTPUT_BITS-1 -: MASTER_OUTPUT_BITS] : {MASTER_OUTPUT_BITS{1'b1}};
+    // assign master = (volumes[0]);
+    // assign uo_out[7:1] = (master[ACCUMULATOR_BITS-1 -: OVERFLOW_BITS] == 0) ? master[CHANNEL_OUTPUT_BITS-1 -: MASTER_OUTPUT_BITS] : {MASTER_OUTPUT_BITS{1'b1}};
+    assign uo_out[7:0] = (master[ACCUMULATOR_BITS-1 -: OVERFLOW_BITS] == 0) ? master[CHANNEL_OUTPUT_BITS-1 -: MASTER_OUTPUT_BITS] : {MASTER_OUTPUT_BITS{1'b1}};
 
-    pwm #(.VALUE_BITS(MASTER_OUTPUT_BITS)) pwm (
-        .clk(clk),
-        .reset(reset),
-        .value(uo_out[7:1]),
-        .out(uo_out[0])
-        );
+    // pwm #(.VALUE_BITS(MASTER_OUTPUT_BITS)) pwm (
+    //     .clk(clk),
+    //     .reset(reset),
+    //     .value(uo_out[7:1]),
+    //     .out(uo_out[0])
+    //     );
     
 endmodule

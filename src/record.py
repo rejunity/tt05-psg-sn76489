@@ -71,6 +71,7 @@ async def play_and_record_wav(dut):
     # raw_sn76489_stream = "../music/DonkeyKongJunior-ingame.bbc50hz.bin"
     # raw_sn76489_stream = "../music/1942.bbc50hz.sn76489.bin"
     raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
+    # raw_sn76489_stream = "../music/MISSION76496.bbc50hz.sn76489.bin"
     music, playback_rate = load_music(raw_sn76489_stream)
     wave_filename = os.path.basename(raw_sn76489_stream).rstrip(".bin") + ".wav"
     print(raw_sn76489_stream, "->", wave_filename)
@@ -97,18 +98,25 @@ async def play_and_record_wav(dut):
     dut.rst_n.value = 1
     print_chip_state(dut)
 
-    dut._log.info("record")
+    max_time = 125;
+    dut._log.info("record " + str(max_time) + " sec")
 
     samples = []
     n = 0
     for frame in music:
         cur_time = cocotb.utils.get_sim_time(units="ns")
+        if max_time > 0 and max_time * 1e9 <= cur_time:
+            write(wave_filename, sampling_rate, np.int16(samples))
+            break
+
         print("---", n, len(samples), "---", [format(d, '08b') for d in frame], "---", "time in ms:", format(cur_time/1e6, "5.3f"),)
         for val in frame:
             dut.ui_in.value = val
+            dut.uio_in.value = 0 # /WE = 0, writes enabled
             await ClockCycles(dut.clk, 1)
             print_chip_state(dut)
 
+        dut.uio_in.value = 1 # # /WE = 1, writes disabled
         #ns = cycles_per_frame * cycle_in_nanoseconds while ns > 0:
 
         # i = cycles_per_frame - len(frame)
@@ -125,7 +133,7 @@ async def play_and_record_wav(dut):
 
         while cocotb.utils.get_sim_time(units="ns") < cur_time + (1e9 / fps):
             await Timer(nanoseconds_per_sample, units="ns", round_mode="round")
-            samples.append(int(dut.uo_out.value) * 64)
+            samples.append(int(dut.uo_out.value) * 128)
         print_chip_state(dut)
 
         # for i in range(int(cycles_per_frame / cycles_per_sample)):
