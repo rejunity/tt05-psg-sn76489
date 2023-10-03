@@ -38,27 +38,27 @@ documentation:
 
 # A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
   inputs:               
-    - data0
-    - data1
-    - data2
-    - data3
-    - data4
-    - data5
-    - data6
-    - data7
+    - D0 - data bus
+    - D1 - data bus
+    - D2 - data bus
+    - D3 - data bus
+    - D4 - data bus
+    - D5 - data bus
+    - D6 - data bus
+    - D7 - data bus
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
-    - snd_out (pwm)
-    - none
-    - none
-    - none
-    - none
-    - none
-    - none
-    - none
+    - audio out (pwm)
+    - digita audio least significant bit
+    - digita audio 
+    - digita audio 
+    - digita audio 
+    - digita audio 
+    - digita audio 
+    - digita audio most significant bit
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
-    - none
+    - /WE - inverted write enable
     - none
     - none
     - none
@@ -72,5 +72,5 @@ documentation:
   external_hw:  ""        # Describe any external hardware needed
   discord:      "rzioma"  # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     ""        # URL to longer form documentation, eg the README.md in your repository
-  clock_hz:     50000000  # Clock frequency in Hz (if required)
+  clock_hz:     4000000   # Clock frequency in Hz (if required)
   picture:      ""        # relative path to a picture in your repository (must be 512kb or less)
