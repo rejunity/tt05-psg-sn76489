@@ -29,6 +29,7 @@ Implementations
 
 Music playback!
 * https://github.com/simondotm/vgm-converter convert from VGM file format to 50Hz resampled raw stream of data
+* Notable tune & compo winner from SMS Power! 2005, MISSION76496 by hally: https://www.smspower.org/Music/MISSION76496-Homebrew
 * https://www.stairwaytohell.com/music/index.html?page=vgmarchive Music from several BBC Micro games
 * https://vgmrips.net/packs/system/tandy-corporation/tandy-1000 Music from several Tandy 100 games
 * https://vgmrips.net/packs/system/sega/sg-1000 Sound effects from several Sega SG1000 games
