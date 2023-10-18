@@ -67,14 +67,22 @@ def load_music(filename, verbose=False):
 
 @cocotb.test()
 async def play_and_record_wav(dut):
-    samples = []
     # raw_sn76489_stream = "../music/DonkeyKongJunior-ingame.bbc50hz.bin"
     # raw_sn76489_stream = "../music/1942.bbc50hz.sn76489.bin"
-    raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
-    # raw_sn76489_stream = "../music/MISSION76496.bbc50hz.sn76489.bin"
+    # raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
+    raw_sn76489_stream = "../music/MISSION76496.bbc50hz.sn76489.bin"
     music, playback_rate = load_music(raw_sn76489_stream)
-    wave_filename = os.path.basename(raw_sn76489_stream).rstrip(".bin") + ".wav"
-    print(raw_sn76489_stream, "->", wave_filename)
+    wave_file = [f"../output/{os.path.basename(raw_sn76489_stream).rstrip('.bin')}.2.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
+    def get_sample(dut, channel):
+        # try:
+            if channel == 0:
+                return int(dut.uo_out.value) << 7
+            else:
+                return int(dut.tt_um_rejunity_sn76489_uut.chan[channel-1].attenuation.out.value)
+        # finally:
+            # return 0
+
+    print(raw_sn76489_stream, "->", wave_file)
 
     master_clock = 4_000_000 // 16
     fps = playback_rate
@@ -98,57 +106,50 @@ async def play_and_record_wav(dut):
     dut.rst_n.value = 1
     print_chip_state(dut)
 
-    max_time = 125;
+    # max_time = 20
+    max_time = -1
     dut._log.info("record " + str(max_time) + " sec")
+    # music = music[(60+45)*50:-1]
+    # music = music[:300]
 
-    samples = []
     n = 0
+    samples = [[] for ch in wave_file]
     for frame in music:
         cur_time = cocotb.utils.get_sim_time(units="ns")
         if max_time > 0 and max_time * 1e9 <= cur_time:
-            write(wave_filename, sampling_rate, np.int16(samples))
+            for ch, data in enumerate(samples):
+                write(wave_file[ch], sampling_rate, np.int16(data))
             break
 
-        print("---", n, len(samples), "---", [format(d, '08b') for d in frame], "---", "time in ms:", format(cur_time/1e6, "5.3f"),)
+        print("---", n, len(samples[0]), "---", [format(d, '08b') for d in frame], "---", "time in ms:", format(cur_time/1e6, "5.3f"),)
         for val in frame:
             dut.ui_in.value = val
-            dut.uio_in.value = 0 # /WE = 0, writes enabled
+            dut.uio_in.value = 0                # /WE = 0, writes enabled
             await ClockCycles(dut.clk, 1)
             print_chip_state(dut)
-
-        dut.uio_in.value = 1 # # /WE = 1, writes disabled
-        #ns = cycles_per_frame * cycle_in_nanoseconds while ns > 0:
-
-        # i = cycles_per_frame - len(frame)
-        # carry = 0
-        # while i > 0:
-        #     i -= int(cycles_per_sample + carry)
-        #     await ClockCycles(dut.clk, int(cycles_per_sample + carry))
-        #     carry = cycles_per_sample + carry - int(cycles_per_sample + carry)
-        #     samples.append(int(dut.uo_out.value) * 32)
-        #     assert int(dut.uo_out.value) * 32 < 65535
-        #     assert int(dut.uo_out.value) * 32 >= 0
-        # print_chip_state(dut)
-
+        dut.uio_in.value = 1                    # /WE = 1, writes disabled
 
         while cocotb.utils.get_sim_time(units="ns") < cur_time + (1e9 / fps):
             await Timer(nanoseconds_per_sample, units="ns", round_mode="round")
-            samples.append(int(dut.uo_out.value) * 128)
-        print_chip_state(dut)
+            for channel, data in enumerate(samples):
+                sample = get_sample(dut, channel)
+                assert sample >= 0
+                assert sample <= 32767
+                if True:
+                    sample *= 2
+                    sample -= 32767
+                    sample = -32767 if sample < -32767 else sample
+                    sample =  32767 if sample > 32767 else sample
+                assert np.int16(sample) == sample
+                data.append(sample)
 
-        # for i in range(int(cycles_per_frame / cycles_per_sample)):
-        #     await ClockCycles(dut.clk, int(cycles_per_sample))
-            
-        #     # samples.append(int(dut.uo_out.value & 0xfe) << 8)
-        #     samples.append(int(dut.uo_out.value) * 64)
-        #     assert int(dut.uo_out.value) * 64 < 65535
-        #     assert int(dut.uo_out.value) * 64 >= 0
-        # print_chip_state(dut)
+        print_chip_state(dut)
 
         if n < fps:
             n += 1
         else:            
-            write(wave_filename, sampling_rate, np.int16(samples))
+            for ch, data in enumerate(samples):
+                write(wave_file[ch], sampling_rate, np.int16(data))
             n = 0
 
     await ClockCycles(dut.clk, 1)
