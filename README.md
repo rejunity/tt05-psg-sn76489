@@ -3,7 +3,7 @@
 # SN76489 PSG in Verilog for Tiny Tapeout 5 (WIP)
 
 <p align="center" width="100%">
-    <img width="33%" src="./docs/SN76489_small.jpg">
+    <img width="33%" src="./docs/SN76489.jpg">
 </p>
 
 Info
