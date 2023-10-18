@@ -2,6 +2,10 @@
 
 # SN76489 PSG in Verilog for Tiny Tapeout 5 (WIP)
 
+<p align="center" width="100%">
+    <img width="33%" src="./docs/SN76489_small.jpg">
+</p>
+
 Info
 * https://en.wikipedia.org/wiki/Texas_Instruments_SN76489
 * https://www.vgmpf.com/Wiki/images/7/78/SN76489AN_-_Manual.pdf
