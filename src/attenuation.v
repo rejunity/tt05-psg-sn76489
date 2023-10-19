@@ -1,5 +1,7 @@
-/* verilator lint_off REALCVT */
+// Attenuation step is 2dB
+// Maximum attenuation is 28dB
 
+/* verilator lint_off REALCVT */
 module attenuation #( parameter CONTROL_BITS = 4, parameter VOLUME_BITS = 15 ) (
     input  wire in,
     input  wire [CONTROL_BITS-1:0] control,
