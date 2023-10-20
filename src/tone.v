@@ -29,16 +29,22 @@ module tone #( parameter COUNTER_BITS = 10 ) (
 
     // always @(posedge clk) begin
     //     if (reset) begin
-    //         counter <= 1;
+    //         counter <= 0;
     //         state <= 0;
     //     end else begin
-    //         if (counter == 1) begin
-    //             counter <= compare;         // reset counter
-    //             state <= ~state;            // flip output state
-    //         end else counter <= counter - 1'b1;
-                
+    //         if (enable)
+    //             counter <= counter - 1'b1;
     //     end
     // end
+
+    // always @(negedge clk) begin
+    //     if (!reset)
+    //         if (enable && counter == 0) begin
+    //             counter <= compare;         // reset counter
+    //             state <= ~state;            // flip output state
+    //         end
+    // end
+
 
     always @(posedge clk) begin
         if (reset) begin
