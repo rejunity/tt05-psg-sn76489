@@ -8,9 +8,16 @@
 // of noise channel. It is possible to keep noise channel output permanently low 
 // by writing into frequency register. All writes take effect immediately.
 
+// https://github.com/dnotq/sn76489_audio/blob/master/rtl/sn76489_audio.vhd
+// This also demonstrates why changing the tone period will not take effect
+// until the next cycle of the counter.  Interestingly, the same counter is
+// used in the AY-3-8910 and YM-2149, only slightly modified to count up
+// (actually, in silicon both up and down counters are present
+// simultaneously) and reset on a >= period condition.
+
 module tone #( parameter COUNTER_BITS = 10 ) (
     input  wire clk,
-    input  wire strobe,
+    input  wire enable,
     input  wire reset,
 
     input  wire [COUNTER_BITS-1:0]  compare,
@@ -38,7 +45,7 @@ module tone #( parameter COUNTER_BITS = 10 ) (
             counter <= 0;
             state <= 0;
         end else begin
-            if (strobe)
+            if (enable)
                 if (counter == 0) begin
                     counter <= compare - 1'b1;  // reset counter
                     state <= ~state;            // flip output state

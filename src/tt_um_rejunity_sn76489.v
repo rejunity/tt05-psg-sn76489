@@ -120,7 +120,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
         for (i = 0; i < NUM_TONES; i = i + 1) begin : tone
             tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
-                .strobe(clk_16_strobe),
+                .enable(clk_16_strobe),
                 .reset(reset),
                 .compare(control_tone_freq[i]),
                 .out(channels[i])
@@ -148,7 +148,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
             noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
-                .strobe(clk_16_strobe),
+                .enable(clk_16_strobe),
                 .reset(reset),
                 .restart_noise(restart_noise),
                 .control(control_noise[i]),
