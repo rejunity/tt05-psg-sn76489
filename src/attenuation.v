@@ -3,7 +3,7 @@
 // 7 bit is enough to represent SN attenuation levels as unique numbers
 
 /* verilator lint_off REALCVT */
-module attenuation #( parameter CONTROL_BITS = 4, parameter VOLUME_BITS = 15 ) (
+module attenuation #( parameter CONTROL_BITS = 4, parameter VOLUME_BITS = 14 ) (
     input  wire in,
     input  wire [CONTROL_BITS-1:0] control,
     output reg  [VOLUME_BITS-1:0] out
@@ -11,7 +11,6 @@ module attenuation #( parameter CONTROL_BITS = 4, parameter VOLUME_BITS = 15 ) (
     localparam MAX_VOLUME = {VOLUME_BITS{1'b1}};
     `define ATLEAST1(i) (i>0 ? i : 1)
     always @(*) begin
-        // out = in;
         case(in ? control : -1) // if in == 0, output is made 0 via the default branch in case statement
             // each bit of attenuation corresponds to 2dB
             // 2dB = 10^(-0.1) = 0.79432823
