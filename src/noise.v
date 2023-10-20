@@ -37,6 +37,10 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
         .compare(noise_freq),
         .out(noise_trigger));
 
+    // @TODO: posedge detection like in AY
+    // @TODO: mux divider for /32, /64, /128
+    // @TODO: use tone 3 flipflop instead of full counter here based on https://github.com/gchiasso/76489A-analysis
+
     reg is_white_noise;
     reg reset_lfsr;
     reg [LFSR_BITS-1:0] lfsr;

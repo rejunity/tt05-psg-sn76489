@@ -1,5 +1,5 @@
-// The datasheet defines 16 attenuation steps that are -2.0dB apart.
-// The maximum attenuation is 28dB, followed by the complete silence.
+// The datasheet defines 16 attenuation steps that are -2.0dB apart, ranging from 0 dB at step 0
+// to a maximum attenuation of -28dB at step 14. Step 15 is a complete silence.
 // 7 bit is enough to represent SN attenuation levels as unique numbers
 
 /* verilator lint_off REALCVT */
