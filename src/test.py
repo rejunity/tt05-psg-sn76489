@@ -139,7 +139,6 @@ async def set_volume(dut, channel, vol=0):
 async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=False, v0 = ZERO_VOLUME, v1 = MAX_VOLUME):
     if frequency > 0:
         period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
-        print ()
     if period == 0:
         period = 1
     if noise: # NOTE: noise effectively produces signal at half the frequency of the timer due to 50% probability that consecutive samples will be equal
