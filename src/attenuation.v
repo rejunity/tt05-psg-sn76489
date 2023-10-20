@@ -1,5 +1,6 @@
-// Attenuation step is 2dB
-// Maximum attenuation is 28dB
+// The datasheet defines 16 attenuation steps that are -2.0dB apart.
+// The maximum attenuation is 28dB, followed by the complete silence.
+// 7 bit is enough to represent SN attenuation levels as unique numbers
 
 /* verilator lint_off REALCVT */
 module attenuation #( parameter CONTROL_BITS = 4, parameter VOLUME_BITS = 15 ) (
