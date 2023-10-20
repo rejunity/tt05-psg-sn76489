@@ -16,12 +16,16 @@ Info
 Computers that used SN76489
 * BBC Micro, Tandy 100, Sega SG1000
 
+Compatible chips:
+* SN76489AN, SN76496, SN76494, SN94624, TMS9919
+
 Osciloscope recordings
 * https://scarybeastsecurity.blogspot.com/2020/06/sampled-sound-1980s-style-from-sn76489.html
 
-Chip decap images
+Reverse Engineering and chip decap images
 * https://siliconpr0n.org/map/ti/sn76489an/
-* https://github.com/gchiasso/76489A-analysis partially analysed
+* https://github.com/gchiasso/76489A-analysis partially analysed chip die
+* https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG partially reverse engineered schematics based on SN76489 included in Sega Mega Drive VDP chip
 
 Implementations
 * https://github.com/OpenVGS/OPSG
@@ -30,6 +34,8 @@ Implementations
 * https://github.com/mamedev/mame/blob/master/src/devices/sound/sn76496.cpp
 * https://github.com/digital-sound-antiques/emu76489
 * https://github.com/nukeykt/Nuked-PSG based on YM7101 decap
+* https://www.eevblog.com/forum/projects/sound-synthesiser-for-retro-computing/ using discreet 74HC IC logic
+
 
 Music playback!
 * https://github.com/simondotm/vgm-converter convert from VGM file format to 50Hz resampled raw stream of data
