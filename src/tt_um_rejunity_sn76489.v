@@ -28,6 +28,9 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     wire [7:0] data;
     assign data = ui_in;
 
+    reg [3:0] clk_counter;
+    wire clk_16_strobe = clk_counter == 0;
+
     // The SN76489 has 8 control "registers":
     // - 4 x 4 bit volume registers (attenuation)
     // - 3 x 10 bit tone registers  (frequency)
@@ -41,18 +44,21 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
     always @(posedge clk) begin
         if (reset) begin
+            clk_counter <= 0;
+
             control_attn[0] <= 4'b1111;
             control_attn[1] <= 4'b1111;
             control_attn[2] <= 4'b1111;
             control_attn[3] <= 4'b1111;
-            control_tone_freq[0] <= 0;
-            control_tone_freq[1] <= 0;
-            control_tone_freq[2] <= 0;
+            control_tone_freq[0] <= 1;
+            control_tone_freq[1] <= 1;
+            control_tone_freq[2] <= 1;
             control_noise[0] <= 3'b100;
 
             latch_control_reg <= 0;
             restart_noise <= 0;
         end else begin
+            clk_counter <= clk_counter + 1;                                 // provides clk_16_strobe for tone & noise generators
             restart_noise <= 0;
             if (we) begin
                 if (data[7] == 1'b1) begin
@@ -114,6 +120,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
         for (i = 0; i < NUM_TONES; i = i + 1) begin : tone
             tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
+                .strobe(clk_16_strobe),
                 .reset(reset),
                 .compare(control_tone_freq[i]),
                 .out(channels[i])
@@ -141,6 +148,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
             noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
+                .strobe(clk_16_strobe),
                 .reset(reset),
                 .restart_noise(restart_noise),
                 .control(control_noise[i]),

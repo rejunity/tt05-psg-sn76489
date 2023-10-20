@@ -10,6 +10,7 @@
 
 module tone #( parameter COUNTER_BITS = 10 ) (
     input  wire clk,
+    input  wire strobe,
     input  wire reset,
 
     input  wire [COUNTER_BITS-1:0]  compare,
@@ -37,11 +38,12 @@ module tone #( parameter COUNTER_BITS = 10 ) (
             counter <= 0;
             state <= 0;
         end else begin
-            if (counter == 0) begin
-                counter <= compare - 1'b1;  // reset counter
-                state <= ~state;            // flip output state
-            end else
-                counter <= counter - 1'b1;
+            if (strobe)
+                if (counter == 0) begin
+                    counter <= compare - 1'b1;  // reset counter
+                    state <= ~state;            // flip output state
+                end else
+                    counter <= counter - 1'b1;
         end
     end
 

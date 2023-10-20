@@ -5,6 +5,7 @@
 // For the Tandy 1000, the tapped bits are bits 0 and 4 ($0011), fed back into bit 14.    
 module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, parameter COUNTER_BITS = 10 ) (
     input  wire clk,
+    input  wire strobe,
     input  wire reset,
     input  wire restart_noise,
 
