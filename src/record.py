@@ -6,6 +6,9 @@ import os
 import numpy as np
 from scipy.io.wavfile import write
 
+# https://github.com/cdodd/vgmparse
+# sudo pip install -e git+https://github.com/cdodd/vgmparse.git#egg=vgmparse
+import vgmparse
 
 def print_chip_state(dut):
     try:
@@ -65,13 +68,38 @@ def load_music(filename, verbose=False):
     assert packets == len(jagged)
     return jagged, playback_rate
 
+    # vgm_file_data = open(raw_sn76489_stream.rstrip('.sn76489.bin')+".vgm", 'rb').read()
+
+def load_vgm(filename, verbose=False):
+    f = open(filename, mode="rb")
+    data = f.read()
+    f.close()
+    # print(filename, len(data))
+    # print("header size: ", data[0], "playback rate: ", data[1], "packets: ", data[2] + 256*data[3], "minutes: ", data[4], "seconds: ", data[5]);
+    # vgm_file_data = open(raw_sn76489_stream.rstrip('.sn76489.bin')+".vgm", 'rb').read()
+    vgm_data = vgmparse.Parser(data)
+    print (vgm_data.metadata)
+    print (vgm_data.command_list[:16])
+
+    playback_rate = vgm_data.metadata['rate']
+    clock_rate = vgm_data.metadata['sn76489_clock']
+
+    # @TODO: extract SN packets
+
+    return None, playback_rate, clock_rate
+
 @cocotb.test()
 async def play_and_record_wav(dut):
+    max_time = -1
+    max_time = 20
+    max_time = 1
+
     # raw_sn76489_stream = "../music/DonkeyKongJunior-ingame.bbc50hz.bin"
     # raw_sn76489_stream = "../music/1942.bbc50hz.sn76489.bin"
     # raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
     raw_sn76489_stream = "../music/MISSION76496.bbc50hz.sn76489.bin"
     music, playback_rate = load_music(raw_sn76489_stream)
+    vgm_file_data, _, _ = load_vgm(raw_sn76489_stream.rstrip('.sn76489.bin')+".vgm")
     wave_file = [f"../output/{os.path.basename(raw_sn76489_stream).rstrip('.bin')}.2.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
     def get_sample(dut, channel):
         # try:
@@ -83,6 +111,7 @@ async def play_and_record_wav(dut):
             # return 0
 
     print(raw_sn76489_stream, "->", wave_file)
+
 
     master_clock = 4_000_000 // 16
     fps = playback_rate
@@ -106,8 +135,6 @@ async def play_and_record_wav(dut):
     dut.rst_n.value = 1
     print_chip_state(dut)
 
-    # max_time = 20
-    max_time = -1
     dut._log.info("record " + str(max_time) + " sec")
     # music = music[(60+45)*50:-1]
     # music = music[:300]
