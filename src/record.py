@@ -38,7 +38,7 @@ def print_chip_state(dut):
     except:
         print(dut.uo_out.value)
 
-def load_music(filename, verbose=False):
+def load_sn76489_bin(filename, verbose=False):
     f = open(filename, mode="rb")
     data = f.read()
     f.close()
@@ -68,39 +68,105 @@ def load_music(filename, verbose=False):
     assert packets == len(jagged)
     return jagged, playback_rate
 
-    # vgm_file_data = open(raw_sn76489_stream.rstrip('.sn76489.bin')+".vgm", 'rb').read()
-
 def load_vgm(filename, verbose=False):
     f = open(filename, mode="rb")
     data = f.read()
     f.close()
-    # print(filename, len(data))
-    # print("header size: ", data[0], "playback rate: ", data[1], "packets: ", data[2] + 256*data[3], "minutes: ", data[4], "seconds: ", data[5]);
-    # vgm_file_data = open(raw_sn76489_stream.rstrip('.sn76489.bin')+".vgm", 'rb').read()
     vgm_data = vgmparse.Parser(data)
-    print (vgm_data.metadata)
-    print (vgm_data.command_list[:16])
+    print(vgm_data.metadata)
 
     playback_rate = vgm_data.metadata['rate']
     clock_rate = vgm_data.metadata['sn76489_clock']
+    seconds = vgm_data.metadata['total_samples'] / 44100
+    frames = int(seconds * playback_rate)
 
-    # @TODO: extract SN packets
+    # see https://vgmrips.net/wiki/VGM_Specification#Commands for command descriptions
+    CMD_SN76489 = 0x50
+    CMD_WAIT_PERIOD = 0x61
+    CMD_WAIT_60 = 0x62
+    CMD_WAIT_50 = 0x63
+    CMD_EOF = 0x66
+    WAIT_PERIOD_60 = 735 # samples to wait at 60Hz with 44100 sampling rate
+    WAIT_PERIOD_50 = 882 # samples to wait at 50Hz with 44100 sampling rate
 
-    return None, playback_rate, clock_rate
+    # setup commands according to playback rate
+    if (playback_rate == 50):
+        CMD_WAIT = CMD_WAIT_50
+        WAIT_PERIOD = WAIT_PERIOD_50
+    elif (playback_rate == 60):
+        CMD_WAIT = CMD_WAIT_60
+        WAIT_PERIOD = WAIT_PERIOD_60
+    else:
+        CMD_WAIT = -1
+        WAIT_PERIOD = 44100 // playback_rate
+
+    jagged = []
+    frame = []
+    total_wait = 0
+    for i, item in enumerate(vgm_data.command_list):
+        cmd = int.from_bytes(item['command'], 'little')
+        data = int.from_bytes(item['data'], 'little') if item['data'] != None else 0
+        if (cmd == CMD_SN76489):
+            frame.append(data)
+        elif cmd == CMD_WAIT or cmd == CMD_WAIT_PERIOD or cmd == CMD_EOF:
+            total_wait += (WAIT_PERIOD if cmd == CMD_WAIT else data)
+
+            jagged.append(bytes(frame))
+            frame = []
+
+            if cmd == CMD_WAIT_PERIOD:
+                assert data >= WAIT_PERIOD
+                assert data % WAIT_PERIOD == 0
+                for n in range(data // WAIT_PERIOD - 1):
+                    jagged.append(bytes([]))
+        else:
+            raise AssertionError("Unsupported command by SN76489")
+    assert frame == []
+    assert WAIT_PERIOD*(len(jagged)-1) >= total_wait or total_wait <= WAIT_PERIOD*len(jagged)
+    return jagged, playback_rate, clock_rate
 
 @cocotb.test()
 async def play_and_record_wav(dut):
     max_time = -1
     max_time = 20
-    max_time = 1
+    max_time = 5
 
-    # raw_sn76489_stream = "../music/DonkeyKongJunior-ingame.bbc50hz.bin"
-    # raw_sn76489_stream = "../music/1942.bbc50hz.sn76489.bin"
-    # raw_sn76489_stream = "../music/CrazeeRider-title.bbc50hz.sn76489.bin"
-    raw_sn76489_stream = "../music/MISSION76496.bbc50hz.sn76489.bin"
-    music, playback_rate = load_music(raw_sn76489_stream)
-    vgm_file_data, _, _ = load_vgm(raw_sn76489_stream.rstrip('.sn76489.bin')+".vgm")
-    wave_file = [f"../output/{os.path.basename(raw_sn76489_stream).rstrip('.bin')}.2.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
+    # vgm_filename = "../music/DonkeyKongJunior-ingame.bbc50hz.vgm"
+    # vgm_filename = "../music/1942.bbc50hz.vgm"
+    # vgm_filename = "../music/CrazeeRider-title.bbc50hz.vgm"
+    vgm_filename = "../music/MISSION76496.bbc50hz.vgm"
+    # vgm_filename = "../music/MISSION76496.ntsc60hz.vgm"
+
+    music, playback_rate, clock_rate = load_vgm(vgm_filename)
+    if True: # test against bin files
+        try:
+            raw_sn76489_filename = vgm_filename.rstrip('.vgm') + ".sn76489.bin"
+            music_raw, playback_rate_raw = load_sn76489_bin(raw_sn76489_filename)
+        except:
+            try:
+                raw_sn76489_filename = vgm_filename.rstrip('.vgm') + ".bin"
+                music_raw, playback_rate_raw = load_sn76489_bin(raw_sn76489_filename)        
+            except:
+                music_raw = music
+                playback_rate_raw = playback_rate
+
+        assert playback_rate_raw == playback_rate
+        for packet_vgm, packet_raw in zip(music, music_raw):
+            assert packet_vgm == packet_raw
+
+        if len(music) != len(music_raw):
+            cutoff = min(len(music), len(music_raw))
+            print(f'WARNING: packet count differs, VGM has {len(music)} while BIN has {len(music_raw)}!!!')
+            print(music[cutoff:-1])
+            print('---  tail of ^^^^^ VGM vs RAW BIN vvvvv  --- ')
+            print(music_raw[cutoff:-1])
+            non_empty_packets = list(filter(lambda packet: packet != b'', music[cutoff:-1]))
+            assert len(non_empty_packets) == 0
+            non_empty_packets = list(filter(lambda packet: packet != b'', music_raw[cutoff:-1]))
+            assert len(non_empty_packets) == 0
+
+
+    wave_file = [f"../output/{os.path.basename(vgm_filename).rstrip('.vgm')}.cocotb.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
     def get_sample(dut, channel):
         # try:
             if channel == 0:
@@ -109,11 +175,10 @@ async def play_and_record_wav(dut):
                 return int(dut.tt_um_rejunity_sn76489_uut.chan[channel-1].attenuation.out.value)
         # finally:
             # return 0
-
-    print(raw_sn76489_stream, "->", wave_file)
-
-
-    master_clock = 4_000_000 // 16
+    print(vgm_filename, "->", wave_file)
+    print(f"VGM playback rate: {playback_rate}, clock: {clock_rate}, frames: {len(music)}" )
+    
+    master_clock = clock_rate // 16
     fps = playback_rate
     cycles_per_frame = master_clock / fps
     cycle_in_nanoseconds = 1e9 / master_clock # 1 / 4Mhz / nanosecond
@@ -126,7 +191,6 @@ async def play_and_record_wav(dut):
 
     dut._log.info("start")
     clock = Clock(dut.clk, cycle_in_nanoseconds, units="ns")
-    # clock = Clock(dut.clk, 10, units="us")
     cocotb.start_soon(clock.start())
 
     dut._log.info("reset")
@@ -179,4 +243,4 @@ async def play_and_record_wav(dut):
                 write(wave_file[ch], sampling_rate, np.int16(data))
             n = 0
 
-    await ClockCycles(dut.clk, 1)
+    await ClockCycles(dut.clk, 16)
