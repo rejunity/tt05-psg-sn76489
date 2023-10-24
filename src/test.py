@@ -315,6 +315,9 @@ async def test_tone_change_while_another_tone_is_playing(dut):
 
     await done(dut)
 
+PERIODIC_NOISE_FREQUENCY_DIVISION_FACTOR = 15   # in periodic mode LFSR register has 1 of out 15 bits set and rotated
+WHITE_NOISE_FREQUENCY_DIVISION_FACTOR = 8       # empirically found this factor, need to validate!
+
 @cocotb.test()
 async def test_periodic_noise_via_tone3(dut):
     await reset(dut)
@@ -323,7 +326,7 @@ async def test_periodic_noise_via_tone3(dut):
     await set_volume(dut, 'noise', 15)
     await set_tone(dut, "3", period=1)
     await set_noise_via_tone3(dut, white=False) # periodic noise
-    await assert_output(dut, period=15, noise=True)
+    await assert_output(dut, period=1*PERIODIC_NOISE_FREQUENCY_DIVISION_FACTOR, noise=True)
 
     await done(dut)
 
@@ -335,7 +338,7 @@ async def test_white_noise_via_tone3(dut):
     await set_volume(dut, 'noise', 15)
     await set_tone(dut, "3", period=1)
     await set_noise_via_tone3(dut, white=True) # white noise
-    await assert_output(dut, period=8, noise=True)
+    await assert_output(dut, period=1*WHITE_NOISE_FREQUENCY_DIVISION_FACTOR, noise=True)
 
     await done(dut)
 
@@ -349,7 +352,7 @@ async def test_periodic_noise_frequencies_via_tone3(dut):
         dut._log.info(f"test 'periodic' noise with period {n} set via Channel 3")
         await set_tone(dut, "3", period=n)
         await set_noise_via_tone3(dut, white=False) # restarts noise
-        await assert_output(dut, period=n*15, noise=True)
+        await assert_output(dut, period=n*PERIODIC_NOISE_FREQUENCY_DIVISION_FACTOR, noise=True)
 
     await done(dut)
 
@@ -363,7 +366,7 @@ async def test_white_noise_frequencies_via_tone3(dut):
         dut._log.info(f"test 'white' noise with period {n} set via Channel 3")
         await set_tone(dut, "3", period=n)
         await set_noise_via_tone3(dut, white=True) # restarts noise
-        await assert_output(dut, period=n*8, noise=True)
+        await assert_output(dut, period=n*WHITE_NOISE_FREQUENCY_DIVISION_FACTOR, noise=True)
 
     await done(dut)
 
@@ -376,7 +379,7 @@ async def test_periodic_noise_via_divider(dut):
     for n in [16, 32, 64]:
         dut._log.info(f"test 'periodic' noise with divider {n}")
         await set_noise(dut, period=n, white=False) # periodic noise
-        await assert_output(dut, period=n*15, noise=True)
+        await assert_output(dut, period=n*PERIODIC_NOISE_FREQUENCY_DIVISION_FACTOR, noise=True)
 
     await done(dut)
 
@@ -389,7 +392,7 @@ async def test_white_noise_via_divider(dut):
     for n in [16, 32, 64]:
         dut._log.info(f"test 'white' noise with divider {n}")
         await set_noise(dut, period=n, white=True) # white noise
-        await assert_output(dut, period=n*8, noise=True)
+        await assert_output(dut, period=n*WHITE_NOISE_FREQUENCY_DIVISION_FACTOR, noise=True)
 
     await done(dut)
 
