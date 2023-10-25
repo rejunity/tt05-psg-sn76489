@@ -1,11 +1,7 @@
 /* verilator lint_off WIDTH */
 `default_nettype none
 
-module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES = 1,
-                                 parameter ATTENUATION_CONTROL_BITS = 4,
-                                 parameter FREQUENCY_COUNTER_BITS = 10, 
-                                 parameter NOISE_CONTROL_BITS = 3,
-                                 // parameter CHANNEL_OUTPUT_BITS = 8,
+module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
                                  // parameter MASTER_OUTPUT_BITS = 7
                                  // parameter CHANNEL_OUTPUT_BITS = 6,
                                  parameter CHANNEL_OUTPUT_BITS = 15,
@@ -20,6 +16,12 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
+    localparam NUM_TONES = 3;
+    localparam NUM_NOISES = 1;
+    localparam ATTENUATION_CONTROL_BITS = 4;
+    localparam FREQUENCY_COUNTER_BITS = 10;
+    localparam NOISE_CONTROL_BITS = 3;
+
     assign uio_oe[7:0] = 8'b1111_1110; // Bidirectional path set to output, except the first /WE pin
     assign uio_out[7:0] = {8{1'b0}};
     wire reset = ! rst_n;
@@ -171,7 +173,7 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
 
     // sum up all the channels, clamp to the highest value when overflown
     // localparam OVERFLOW_BITS = $clog2(NUM_CHANNELS);
-    // localparam ACCUMULATOR_BITS = CHANNEL_OUTPUT_BITS + OVERFLOW_BITS;
+    // localparam ACCUMULATOR_BITS = CHANNEL_fOUTPUT_BITS + OVERFLOW_BITS;
     // wire [ACCUMULATOR_BITS-1:0] master;
     // assign master = (volumes[0] + volumes[1]) + volumes[2] + volumes[3]);
 
