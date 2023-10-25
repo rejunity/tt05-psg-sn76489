@@ -10,7 +10,7 @@ ZERO_VOLUME = 2 # int(0.2 * 256) # SN might be outputing low constant DC as sile
 MAX_VOLUME = 255/4
 
 def print_chip_state(dut):
-    # try:
+    try:
         internal = dut.tt_um_rejunity_sn76489_uut
         print(
             "W" if dut.uio_in.value == 0 else " ",
@@ -25,16 +25,17 @@ def print_chip_state(dut):
             '{:4d}'.format(int(internal.tone[2].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[2].gen.counter.value)),
                         "|#|" if internal.tone[2].gen.out == 1 else "|-|",  #"!",
-            internal.noise[0].gen.control.value,
-            internal.noise[0].gen.reset_lfsr.value,
-            '{:4d}'.format(int(internal.noise[0].gen.tone.compare.value)),
-            '{:4d}'.format(int(internal.noise[0].gen.tone.counter.value)),
-                        ">" if internal.noise[0].gen.tone.out == 1 else " ",
+            "R" if internal.noise[0].gen.reset_lfsr == 1 else " ",
+            "w" if internal.noise[0].gen.is_white_noise == 1 else "p",
+            ["16", "32", "64", "T3"][internal.noise[0].gen.control.value & 3],
+            '{:3d}'.format(int(internal.noise[0].gen.counter)),
+            internal.noise[0].gen.trigger.value,
+            ">" if internal.noise[0].gen.trigger_edge == 1 else " ",
             internal.noise[0].gen.lfsr.value, ">>",
             '{:3d}'.format(int(dut.uo_out.value >> 1)),
                         "@" if dut.uo_out[0].value == 1 else ".")
-    # except:
-    #    print(dut.ui_in.value, ">", dut.uo_out.value)
+    except:
+       print(dut.ui_in.value, ">", dut.uo_out.value)
 
 
 async def reset(dut):

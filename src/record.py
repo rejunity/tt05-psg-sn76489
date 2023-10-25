@@ -14,29 +14,30 @@ def print_chip_state(dut):
     try:
         internal = dut.tt_um_rejunity_sn76489_uut
         print(
-            '{:2d}'.format(int(internal.chan[0].attenuation.control.value)),
+            "W" if dut.uio_in.value == 0 else " ",
+            dut.ui_in.value, ">||",
+            '{:1d}'.format(int(internal.latch_control_reg.value)), "!",
             '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[0].gen.counter.value)),
                         "|#|" if internal.tone[0].gen.out == 1 else "|-|", # "|",
-            '{:2d}'.format(int(internal.chan[1].attenuation.control.value)),
             '{:4d}'.format(int(internal.tone[1].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[1].gen.counter.value)),
                         "|#|" if internal.tone[1].gen.out == 1 else "|-|",  #"|",
-            '{:2d}'.format(int(internal.chan[2].attenuation.control.value)),
             '{:4d}'.format(int(internal.tone[2].gen.compare.value)),
             '{:4d}'.format(int(internal.tone[2].gen.counter.value)),
                         "|#|" if internal.tone[2].gen.out == 1 else "|-|",  #"!",
-            '{:2d}'.format(int(internal.chan[3].attenuation.control.value)),
-            internal.noise[0].gen.control.value,
-            internal.noise[0].gen.reset_lfsr.value,
-            '{:4d}'.format(int(internal.noise[0].gen.tone.compare.value)),
-            '{:4d}'.format(int(internal.noise[0].gen.tone.counter.value)),
-                        ">" if internal.noise[0].gen.tone.out == 1 else " ",
+            "R" if internal.noise[0].gen.reset_lfsr == 1 else " ",
+            "w" if internal.noise[0].gen.is_white_noise == 1 else "p",
+            ["16", "32", "64", "T3"][internal.noise[0].gen.control.value & 3],
+            '{:3d}'.format(int(internal.noise[0].gen.counter)),
+            internal.noise[0].gen.trigger.value,
+            ">" if internal.noise[0].gen.trigger_edge == 1 else " ",
             internal.noise[0].gen.lfsr.value, ">>",
-            '{:3d}'.format(int(dut.uo_out.value)),
+            '{:3d}'.format(int(dut.uo_out.value >> 1)),
                         "@" if dut.uo_out[0].value == 1 else ".")
     except:
-        print(dut.uo_out.value)
+       print(dut.ui_in.value, ">", dut.uo_out.value)
+
 
 def load_sn76489_bin(filename, verbose=False):
     f = open(filename, mode="rb")

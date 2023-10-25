@@ -152,7 +152,8 @@ module tt_um_rejunity_sn76489 #( parameter NUM_TONES = 3, parameter NUM_NOISES =
                 .reset(reset),
                 .restart_noise(restart_noise),
                 .control(control_noise[i]),
-                .tone_freq(control_tone_freq[NUM_TONES-1]), // last tone frequency
+                .driven_by_tone(channels[NUM_TONES-1]), // can be driven by the last tone,
+                                                        // when control_noise[1:0] == 2'b11
                 .out(channels[NUM_TONES+i])
                 );
         end
