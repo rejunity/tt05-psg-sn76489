@@ -9,7 +9,7 @@ TOPLEVEL_LANG ?= verilog
 ifneq ($(GATES),yes)
 
 # this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/attenuation.v $(PWD)/tone.v $(PWD)/noise.v $(PWD)/pwm.v $(PWD)/tt_um_rejunity_sn76489.v $(PWD)/tb.v
+VERILOG_SOURCES += $(PWD)/attenuation.v $(PWD)/tone.v $(PWD)/noise.v $(PWD)/signal_edge.v $(PWD)/pwm.v $(PWD)/tt_um_rejunity_sn76489.v $(PWD)/tb.v
 
 else
 

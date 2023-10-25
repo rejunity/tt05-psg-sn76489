@@ -30,13 +30,21 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
         is_white_noise <= control[2];
     end
 
-    wire noise_trigger;
+    wire trigger;
     tone #(.COUNTER_BITS(COUNTER_BITS)) tone (
         .clk(clk),
         .enable(enable),
         .reset(reset),
         .compare(noise_freq),
-        .out(noise_trigger));
+        .out(trigger));
+
+    wire trigger_edge;
+    signal_edge signal_edge(
+        .clk(clk),
+        .reset(reset),
+        .signal(trigger),
+        .on_posedge(trigger_edge)
+    );
 
     // @TODO: posedge detection like in AY
     // @TODO: mux divider for /32, /64, /128
@@ -46,14 +54,17 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
     reg reset_lfsr;
     reg [LFSR_BITS-1:0] lfsr;
     assign reset_lfsr = reset | restart_noise;
-    always @(posedge noise_trigger, posedge reset_lfsr) begin
-        if (reset_lfsr) begin
+    // always @(posedge noise_trigger, posedge reset_lfsr) begin
+    always @(posedge clk) begin
+        if (reset_lfsr)
             lfsr <= 1'b1 << (LFSR_BITS-1);
-        end else begin
-            if (is_white_noise) begin
-                lfsr <= {lfsr[LFSR_TAP0] ^ lfsr[LFSR_TAP1], lfsr[LFSR_BITS-1:1]};
-            end else begin
-                lfsr <= {lfsr[LFSR_TAP0]                  , lfsr[LFSR_BITS-1:1]};
+        else begin
+            if (trigger_edge) begin
+                if (is_white_noise) begin
+                    lfsr <= {lfsr[LFSR_TAP0] ^ lfsr[LFSR_TAP1], lfsr[LFSR_BITS-1:1]};
+                end else begin
+                    lfsr <= {lfsr[LFSR_TAP0]                  , lfsr[LFSR_BITS-1:1]};
+                end
             end
         end
     end

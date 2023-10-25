@@ -9,6 +9,7 @@ project:
     - attenuation.v
     - tone.v
     - noise.v
+    - signal_edge.v
     - pwm.v
     - tt_um_rejunity_sn76489.v
   top_module:  "tt_um_rejunity_sn76489"      # Put the name of your top module here, must start with "tt_um_". Make it unique by including your github username
