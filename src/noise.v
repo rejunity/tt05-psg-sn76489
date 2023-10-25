@@ -14,16 +14,15 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
 
     output wire  out
 );
-    localparam MASTER_CLOCK = 16;
-    localparam TONE_DIV_2 = 2;
-
     reg [COUNTER_BITS-1:0] noise_freq;
     always @(posedge clk) begin
         // NF0, NF1 bits
         case(control[1:0])
-            2'b00:  noise_freq <= 512 /MASTER_CLOCK/TONE_DIV_2;
-            2'b01:  noise_freq <= 1024/MASTER_CLOCK/TONE_DIV_2;
-            2'b10:  noise_freq <= 2048/MASTER_CLOCK/TONE_DIV_2;
+            // SEE: Manual, "2. Noise Generator"
+            // Shift rates 512, 1024, 2048 are defined assuming global division by 32 as in "1. Tone Generator"
+            2'b00:  noise_freq <= 16; // N/512  = N / 16 (master clk divider) / 2 (trigger flip-flop) / 16
+            2'b01:  noise_freq <= 32; // N/1024 = N / 16 (master clk divider) / 2 (trigger flip-flop) / 32
+            2'b10:  noise_freq <= 64; // N/2048 = N / 16 (master clk divider) / 2 (trigger flip-flop) / 32
             2'b11:  noise_freq <= tone_freq;
         endcase
         // FB bit
@@ -54,7 +53,6 @@ module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, paramete
     reg reset_lfsr;
     reg [LFSR_BITS-1:0] lfsr;
     assign reset_lfsr = reset | restart_noise;
-    // always @(posedge noise_trigger, posedge reset_lfsr) begin
     always @(posedge clk) begin
         if (reset_lfsr)
             lfsr <= 1'b1 << (LFSR_BITS-1);
