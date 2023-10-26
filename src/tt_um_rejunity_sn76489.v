@@ -71,7 +71,7 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
             latch_control_reg <= 0;
             restart_noise <= 0;
         end else begin
-            clk_counter <= clk_counter + 1;                                 // provides clk_16_strobe for tone & noise generators
+            clk_counter <= clk_counter + 1;                                 // provides clk_master_strobe for tone & noise generators
             restart_noise <= 0;
             if (we) begin
                 if (data[7] == 1'b1) begin
@@ -110,24 +110,6 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
     wire                           channels [NUM_CHANNELS-1:0];
     wire [CHANNEL_OUTPUT_BITS-1:0] volumes  [NUM_CHANNELS-1:0];
 
-    // tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone0 (
-    //     .clk(clk),
-    //     .reset(reset),
-    //     .compare(control_tone_freq[0]),
-    //     .out(channels[0]));
-
-    // tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone1 (
-    //     .clk(clk),
-    //     .reset(reset),
-    //     .compare(control_tone_freq[1]),
-    //     .out(channels[1]));
-
-    // tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) tone2 (
-    //     .clk(clk),
-    //     .reset(reset),
-    //     .compare(control_tone_freq[2]),
-    //     .out(channels[2]));
-
     genvar i;
     generate
         for (i = 0; i < NUM_TONES; i = i + 1) begin : tone
@@ -141,24 +123,6 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
         end
 
         for (i = 0; i < NUM_NOISES; i = i + 1) begin : noise
-            // wire noise_type;
-            // wire [FREQUENCY_COUNTER_BITS-1:0] noise_freq;
-            // noise_control_decoder #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) noise_control_decoder (
-            //     .control(control_noise[i]),
-            //     .tone_freq(control_tone_freq[NUM_TONES-1]), // last tone 
-            //     .noise_type(noise_type),
-            //     .noise_freq(noise_freq)
-            //     );
-
-            // noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
-            //     .clk(clk),
-            //     .reset(reset),
-            //     .reset_lfsr(restart_noise),
-            //     .compare(noise_freq),
-            //     .is_white_noise(noise_type),
-            //     .out(channels[NUM_TONES+i])
-            //     );
-
             noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
                 .enable(clk_master_strobe),
