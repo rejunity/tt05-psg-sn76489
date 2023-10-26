@@ -2,8 +2,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
-MASTER_CLOCK = 4_000_000 # 4 MHz frequency of SN as used in BBC Micro,          0x11C = 440 Hz
 # MASTER_CLOCK = 3_579_545 # PAL frequency of SN as used in Sega Master System,  0xFE = 440 Hz
+MASTER_CLOCK = 4_000_000 # 4 MHz frequency of SN as used in BBC Micro,          0x11C = 440 Hz
 CHIP_INTERNAL_CLOCK_DIV = 16
 # MASTER_CLOCK = 250_000
 # CHIP_INTERNAL_CLOCK_DIV = 1
@@ -45,14 +45,15 @@ def print_chip_state(dut):
 # 0b1111_1111
 INPUT_ON_RESET          = 0
 BIDIRECTIONAL_ON_RESET  = 0b1111_1111 # Emulate pull-ups on BIDIRECTIONAL pins
-WRITE_ENABLED  = 0 # /WE = 0, writes enabled
-WRITE_DISABLED = 1 # /WE = 1, writes disabled
-# WRITE_ENABLED  = 0b11111_11_0 # /WE = 0, writes enabled
-# WRITE_DISABLED = 0b11111_11_1 # /WE = 1, writes disabled
-# WRITE_ENABLED  = 0b11111_01_0 # /WE = 0, writes enabled
-# WRITE_DISABLED = 0b11111_01_1 # /WE = 1, writes disabled
-# WRITE_ENABLED  = 0b11111_10_0 # /WE = 0, writes enabled
-# WRITE_DISABLED = 0b11111_10_1 # /WE = 1, writes disabled
+if CHIP_INTERNAL_CLOCK_DIV == 128:
+    WRITE_ENABLED  = 0b11111_10_0 # SEL = 2 :: clock div 128 ; /WE = 0 :: writes enabled
+    WRITE_DISABLED = 0b11111_10_1 # SEL = 2 :: clock div 128 ; /WE = 1 :: writes disabled
+elif CHIP_INTERNAL_CLOCK_DIV == 1:
+    WRITE_ENABLED  = 0b11111_01_0 # SEL = 1 :: no clock div ; /WE = 0 :: writes enabled
+    WRITE_DISABLED = 0b11111_01_1 # SEL = 1 :: no clock div ; /WE = 1 :: writes disabled
+else:
+    WRITE_ENABLED  = 0 # /WE = 0, writes enabled
+    WRITE_DISABLED = 1 # /WE = 1, writes disabled
 
 
 CMD_FREQUENCY  = 0b1000_0000
@@ -134,8 +135,16 @@ async def set_tone(dut, channel, frequency=-1, period=-1):
         period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
     assert 0 <= channel and channel <= 3
     assert 0 <= period and period <= 1023
-    await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
-    await write(dut, period >> 4)
+    if CHIP_INTERNAL_CLOCK_DIV == 1:
+        # never set frequency to 0 when chip is running without a clock divider
+        # when chip has no clock divider, the internal counter will starts counting down immediately
+        # and wrap around to 0x3ff period!
+        await write(dut, CMD_FREQUENCY | (channel << 5) | ((period | 1) & 15))
+        await write(dut, period >> 4)
+        await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
+    else:
+        await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
+        await write(dut, period >> 4)
     await flush(dut)
 
 async def set_noise_via_tone3(dut, white=True):
@@ -186,8 +195,6 @@ async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=Fals
         max_error = 0.15 if noise else 0.01
         pulses_to_collect = 16 if noise else 2
         cycles_to_collect_data *= pulses_to_collect * 2
-    
-    print("cycles_to_collect_data", cycles_to_collect_data)
 
     mid_volume = (v0 + v1) // 2
     state_changes = 0
@@ -305,7 +312,7 @@ async def test_rapid_register_change_does_not_affect_frequency(dut):
     await set_tone(dut, 0, period=32)
     
     dut._log.info("Set shortest tone, should be ignored until long period finishes")
-    await ClockCycles(dut.clk, 10)
+    await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV * 2)
     await set_tone(dut, 0, period=1) # this tone setting should be ignored until the whole wave cycle with long period finishes
 
     period_longer_than_1 = 16   # expect period higher than 1, but somewhat shorter than the long period
@@ -324,8 +331,8 @@ async def test_tone_change_while_another_tone_is_playing(dut):
     await set_volume(dut, 0, 15)
     await set_tone(dut, 0, period=long_period)
     
-    dut._log.info("Immediatelly set the shortest tone")
-    await ClockCycles(dut.clk, 10)
+    dut._log.info("Almost immediatelly set the shortest tone")
+    await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV * 2)
     await set_tone(dut, 0, period=1)
 
     dut._log.info("Wait for the long period to finish until short tone starts")
