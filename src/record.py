@@ -1,3 +1,8 @@
+# How to run this script from command line:
+#
+# make MODULE=record VGM=../music/MISSION76496.bbc50hz.vgm MAX_TIME=10
+#
+
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
@@ -10,11 +15,23 @@ from scipy.io.wavfile import write
 # sudo pip install -e git+https://github.com/cdodd/vgmparse.git#egg=vgmparse
 import vgmparse
 
+VGM_FILENAME = "../music/MISSION76496.bbc50hz.vgm"
+VGM_FILENAME = os.environ.get("VGM", VGM_FILENAME)
+VGM_FILENAME = os.environ.get("VGM_FILENAME", VGM_FILENAME)
+
+MAX_TIME = -1
+try:
+    MAX_TIME = int(os.environ.get("MAX_TIME", VGM_FILENAME))
+finally:
+    pass
+
+cycle_in_nanoseconds = 0
 def print_chip_state(dut):
     try:
         internal = dut.tt_um_rejunity_sn76489_uut
         print(
-            "W" if dut.uio_in.value == 0 else " ",
+            '{:8d}'.format(int(cocotb.utils.get_sim_time("ns") // cycle_in_nanoseconds)),
+            "W" if dut.uio_in.value & 1 == 0 else " ",
             dut.ui_in.value, ">||",
             '{:1d}'.format(int(internal.latch_control_reg.value)), "!",
             '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
@@ -128,15 +145,8 @@ def load_vgm(filename, verbose=False):
 
 @cocotb.test()
 async def play_and_record_wav(dut):
-    max_time = -1
-    max_time = 20
-    max_time = 5
-
-    # vgm_filename = "../music/DonkeyKongJunior-ingame.bbc50hz.vgm"
-    # vgm_filename = "../music/1942.bbc50hz.vgm"
-    # vgm_filename = "../music/CrazeeRider-title.bbc50hz.vgm"
-    vgm_filename = "../music/MISSION76496.bbc50hz.vgm"
-    # vgm_filename = "../music/MISSION76496.ntsc60hz.vgm"
+    max_time = MAX_TIME
+    vgm_filename = VGM_FILENAME
 
     music, playback_rate, clock_rate = load_vgm(vgm_filename)
     if True: # test against bin files
@@ -179,10 +189,14 @@ async def play_and_record_wav(dut):
     print(vgm_filename, "->", wave_file)
     print(f"VGM playback rate: {playback_rate}, clock: {clock_rate}, frames: {len(music)}" )
     
-    master_clock = clock_rate // 16
+    WRITE_ENABLED  = 0b11111_01_0 # SEL = 1 :: no clock div ; /WE = 0 :: writes enabled
+    WRITE_DISABLED = 0b11111_01_1 # SEL = 1 :: no clock div ; /WE = 1 :: writes disabled
+
+    master_clock = clock_rate // 16 # using chip configuration without clock divider for faster recording
     fps = playback_rate
     cycles_per_frame = master_clock / fps
-    cycle_in_nanoseconds = 1e9 / master_clock # 1 / 4Mhz / nanosecond
+    global cycle_in_nanoseconds
+    cycle_in_nanoseconds = 1e9 // master_clock
 
     sampling_rate = 44100
     nanoseconds_per_sample = 1e9 / sampling_rate
@@ -193,6 +207,9 @@ async def play_and_record_wav(dut):
     dut._log.info("start")
     clock = Clock(dut.clk, cycle_in_nanoseconds, units="ns")
     cocotb.start_soon(clock.start())
+
+    dut.ui_in.value = 0
+    dut.uio_in.value = WRITE_DISABLED
 
     dut._log.info("reset")
     dut.rst_n.value = 0
@@ -213,13 +230,14 @@ async def play_and_record_wav(dut):
                 write(wave_file[ch], sampling_rate, np.int16(data))
             break
 
-        print("---", n, len(samples[0]), "---", [format(d, '08b') for d in frame], "---", "time in ms:", format(cur_time/1e6, "5.3f"),)
+        if len(frame) > 0:
+            print("---", n, len(samples[0]), "---", [format(d, '08b') for d in frame], "---", "time in ms:", format(cur_time/1e6, "5.3f"),)
         for val in frame:
             dut.ui_in.value = val
-            dut.uio_in.value = 0                # /WE = 0, writes enabled
+            dut.uio_in.value = WRITE_ENABLED
             await ClockCycles(dut.clk, 1)
             print_chip_state(dut)
-        dut.uio_in.value = 1                    # /WE = 1, writes disabled
+        dut.uio_in.value = WRITE_DISABLED
 
         while cocotb.utils.get_sim_time(units="ns") < cur_time + (1e9 / fps):
             await Timer(nanoseconds_per_sample, units="ns", round_mode="round")
