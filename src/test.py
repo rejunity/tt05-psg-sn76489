@@ -1,245 +1,27 @@
+# Arguments that can be passed to this test suite:
+#   SEL == 0 :: standard SN76489 master clock divider /16
+#   SEL == 1 :: old SN94624/SN76494  no clock divider
+#   SEL == 2 ::                         clock divider /128
+#
+#   MASTER_CLOCK :: custom master clock in Hz, default is 4_000_000
+#   CHIP_INTERNAL_CLOCK_DIV :: custom clock divider, default is 16
+#
+# Examples running this script:
+#   make                        - run with default parameters
+#   make SEL=1                  - run without clock divider, fastest!
+#   make MASTER_CLOCK=3579545   - run with chip clocked at PAL frequency
+
+
+import os
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
-import os
-SEL = 0
-SEL = os.environ.get("SEL", SEL)
-
-# MASTER_CLOCK = 3_579_545 # PAL frequency of SN as used in Sega Master System,  0xFE = 440 Hz
-MASTER_CLOCK = 4_000_000 # 4 MHz frequency of SN as used in BBC Micro,          0x11C = 440 Hz
+# MASTER_CLOCK = 3_579_545 # NTSC frequency of SN as used in Sega Master System,    0xFE = 440 Hz
+# MASTER_CLOCK = 3_546_895 # PAL                 ---- // ----
+MASTER_CLOCK = 4_000_000 # 4 MHz frequency of SN as used in BBC Micro,              0x11C = 440 Hz
 CHIP_INTERNAL_CLOCK_DIV = 16
 
-if SEL == 1 or SEL == "1" or SEL == "01":
-    MASTER_CLOCK = 250_000
-    CHIP_INTERNAL_CLOCK_DIV = 1
-elif SEL == 2 or SEL == "2" or SEL == "10":
-    MASTER_CLOCK = 32_000_000
-    CHIP_INTERNAL_CLOCK_DIV = 128
-
-if SEL == 0 or SEL == "":
-    try:
-        MASTER_CLOCK = int(os.environ.get("MASTER_CLOCK", MASTER_CLOCK))
-    except:
-        pass
-    try:
-        CHIP_INTERNAL_CLOCK_DIV = int(os.environ.get("CHIP_INTERNAL_CLOCK_DIV", CHIP_INTERNAL_CLOCK_DIV))
-    except:
-        pass
-
-ZERO_VOLUME = 2 # int(0.2 * 256) # SN might be outputing low constant DC as silence instead of complete 0V
-MAX_VOLUME = 255/4
-
-def print_chip_state(dut):
-    try:
-        internal = dut.tt_um_rejunity_sn76489_uut
-        print(
-            "W" if dut.uio_in.value & 1 == 0 else " ",
-            dut.ui_in.value, ">||",
-            '{:1d}'.format(int(internal.latch_control_reg.value)), "!",
-            '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
-            '{:4d}'.format(int(internal.tone[0].gen.counter.value)),
-                        "|#|" if internal.tone[0].gen.out == 1 else "|-|", # "|",
-            '{:4d}'.format(int(internal.tone[1].gen.compare.value)),
-            '{:4d}'.format(int(internal.tone[1].gen.counter.value)),
-                        "|#|" if internal.tone[1].gen.out == 1 else "|-|",  #"|",
-            '{:4d}'.format(int(internal.tone[2].gen.compare.value)),
-            '{:4d}'.format(int(internal.tone[2].gen.counter.value)),
-                        "|#|" if internal.tone[2].gen.out == 1 else "|-|",  #"!",
-            "R" if internal.noise[0].gen.reset_lfsr == 1 else " ",
-            "w" if internal.noise[0].gen.is_white_noise == 1 else "p",
-            ["16", "32", "64", "T3"][internal.noise[0].gen.control.value & 3],
-            '{:3d}'.format(int(internal.noise[0].gen.counter)),
-            internal.noise[0].gen.trigger.value,
-            ">" if internal.noise[0].gen.trigger_edge == 1 else " ",
-            internal.noise[0].gen.lfsr.value, ">>",
-            '{:3d}'.format(int(dut.uo_out.value >> 1)),
-                        "@" if dut.uo_out[0].value == 1 else ".")
-    except:
-       print(dut.ui_in.value, ">", dut.uo_out.value)
-
-# 0b1111_1111
-INPUT_ON_RESET          = 0
-BIDIRECTIONAL_ON_RESET  = 0b1111_1111 # Emulate pull-ups on BIDIRECTIONAL pins
-if CHIP_INTERNAL_CLOCK_DIV == 128:
-    WRITE_ENABLED  = 0b11111_10_0 # SEL = 2 :: clock div 128 ; /WE = 0 :: writes enabled
-    WRITE_DISABLED = 0b11111_10_1 # SEL = 2 :: clock div 128 ; /WE = 1 :: writes disabled
-elif CHIP_INTERNAL_CLOCK_DIV == 1:
-    WRITE_ENABLED  = 0b11111_01_0 # SEL = 1 :: no clock div ; /WE = 0 :: writes enabled
-    WRITE_DISABLED = 0b11111_01_1 # SEL = 1 :: no clock div ; /WE = 1 :: writes disabled
-else:
-    WRITE_ENABLED  = 0 # /WE = 0, writes enabled
-    WRITE_DISABLED = 1 # /WE = 1, writes disabled
-
-
-CMD_FREQUENCY  = 0b1000_0000
-CMD_NOISE      = 0b1110_0000
-CMD_ATTENUATOR = 0b1001_0000
-
-async def reset(dut):
-    master_clock = MASTER_CLOCK # // 16
-    cycle_in_nanoseconds = 1e9 // master_clock # 1 / 4Mhz / nanosecond
-    dut._log.info("start")
-    clock = Clock(dut.clk, cycle_in_nanoseconds, units="ns")
-    cocotb.start_soon(clock.start())
-
-    dut.ui_in.value =   INPUT_ON_RESET
-    dut.uio_in.value =  BIDIRECTIONAL_ON_RESET 
-
-    dut._log.info("reset")
-    dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
-    dut.rst_n.value = 1
-
-    dut.rst_n.value = 1    
-
-async def done(dut):
-    dut._log.info("DONE!")
-
-def get_output(dut):
-    return int(dut.uo_out.value)
-
-async def get_max_output(dut, period=1):
-    if period == 0:
-        period = 1024
-    max_val = -1
-    for n in range(period * 2):
-        await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV)
-        max_val = max(max_val, get_output(dut))
-    return max_val
-
-async def record_amplitude_table(dut, channel):
-    channel = channel_index(channel)
-    assert channel != 3 # can't record amplitude from Noise channel right now 
-    await set_silence(dut)
-    await set_tone(dut, 0, period=1)
-    amplitudes = []
-    for vol in range(16):
-        dut.uio_in.value = WRITE_ENABLED
-        dut.ui_in.value = CMD_ATTENUATOR | (channel << 5) | (15 - vol)
-        amplitudes.append(await get_max_output(dut))
-    await set_silence(dut)
-    return amplitudes
-
-def channel_index(channel):
-    if channel == '1' or channel == 'A' or channel == 'a':
-        channel = 0
-    elif channel == '2' or channel == 'B' or channel == 'b':
-        channel = 1
-    elif channel == '3' or channel == 'C' or channel == 'c':
-        channel = 2
-    elif channel == '4' or channel == 'N' or channel == 'noise':
-        channel = 3
-    assert 0 <= channel and channel <= 3
-    return channel
-
-
-async def write(dut, data):
-    dut.uio_in.value = WRITE_ENABLED
-    dut.ui_in.value = data
-    await ClockCycles(dut.clk, 1)
-    print_chip_state(dut)
-
-async def flush(dut):
-    dut.uio_in.value = WRITE_DISABLED
-    await ClockCycles(dut.clk, 1)
-    print_chip_state(dut)
-
-async def set_tone(dut, channel, frequency=-1, period=-1):
-    channel = channel_index(channel)
-    if frequency > 0:
-        period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
-    assert 0 <= channel and channel <= 3
-    assert 0 <= period and period <= 1023
-    if CHIP_INTERNAL_CLOCK_DIV == 1:
-        # never set frequency to 0 when chip is running without a clock divider
-        # when chip has no clock divider, the internal counter will starts counting down immediately
-        # and wrap around to 0x3ff period!
-        await write(dut, CMD_FREQUENCY | (channel << 5) | ((period | 1) & 15))
-        await write(dut, period >> 4)
-        await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
-    else:
-        await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
-        await write(dut, period >> 4)
-    await flush(dut)
-
-async def set_noise_via_tone3(dut, white=True):
-    white = 1 if white else 0
-    await write(dut, CMD_NOISE | (white << 2) | 0b11)
-    await flush(dut)
-
-async def set_noise(dut, white=True, frequency=-1, period=-1, divider=-1):
-    white = 1 if white else 0
-    if frequency > 0:
-        period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
-    if period == 0:
-        period = 1
-    noise_control = -1
-    if divider == 0 or divider == 16 * CHIP_INTERNAL_CLOCK_DIV * 2 or period == 16:
-        noise_control = 0
-    elif divider == 1 or divider == 32 * CHIP_INTERNAL_CLOCK_DIV * 2 or period == 32:
-        noise_control = 1
-    elif divider == 2 or divider == 64 * CHIP_INTERNAL_CLOCK_DIV * 2 or period == 64:
-        noise_control = 2
-    assert 0 <= noise_control and noise_control < 3
-    await write(dut, CMD_NOISE | (white << 2) | noise_control)
-    await flush(dut)
-
-async def set_silence(dut):
-    for ch in range(4):
-        await set_volume(dut, ch, 0)
-
-async def set_volume(dut, channel, vol=0):
-    channel = channel_index(channel)
-    assert 0 <= channel and channel <= 3
-    assert 0 <= vol     and vol <= 15
-    print(channel, vol)
-    await write(dut, CMD_ATTENUATOR | (channel << 5) | (15 - vol))
-    await flush(dut)
-
-async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=False, v0 = ZERO_VOLUME, v1 = MAX_VOLUME):
-    if frequency > 0:
-        period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
-    if period == 0:
-        period = 1
-    assert 0 < period and period <= 1024
-    cycles_to_collect_data = int(period * CHIP_INTERNAL_CLOCK_DIV)
-    if constant:
-        max_error = 0
-        pulses_to_collect = 0
-    else:
-        max_error = 0.15 if noise else 0.01
-        pulses_to_collect = 16 if noise else 2
-        cycles_to_collect_data *= pulses_to_collect * 2
-
-    mid_volume = (v0 + v1) // 2
-    state_changes = 0
-    clocks_to_step = CHIP_INTERNAL_CLOCK_DIV//2 if CHIP_INTERNAL_CLOCK_DIV >= 2 and CHIP_INTERNAL_CLOCK_DIV%2 == 0 else 1
-    for i in range(cycles_to_collect_data//clocks_to_step):
-        last_state = get_output(dut) > mid_volume
-        await ClockCycles(dut.clk, clocks_to_step)
-        # print_chip_state(dut)
-        new_state = get_output(dut) > mid_volume
-        if last_state != new_state:
-            state_changes += 1
-
-    time_passed_to_collect_data = cycles_to_collect_data / MASTER_CLOCK
-    measured_frequency = (state_changes / 2) / time_passed_to_collect_data
-    frequency = MASTER_CLOCK / (CHIP_INTERNAL_CLOCK_DIV * 2 * period)
-
-    if not constant:
-        noise = "noisie" if noise else ""
-        if frequency > 1000:
-            dut._log.info(f"expected {noise} frequency {frequency/1000:4.3f} KHz and measured {measured_frequency/1000:4.3f} KHz")
-        else:
-            dut._log.info(f"expected {noise} frequency {frequency:3.2f} Hz and measured {measured_frequency:3.2f} Hz")
-        assert frequency * (1.0-max_error) <= measured_frequency and measured_frequency <= frequency * (1.0+max_error)
-
-    pulses_to_collect2 = pulses_to_collect*2
-    assert pulses_to_collect2 * (1.0-max_error) <= state_changes and state_changes <= pulses_to_collect2 * (1.0+max_error)
-
-
-### TESTS
 
 @cocotb.test()
 async def test_silence(dut):
@@ -516,3 +298,239 @@ async def test_psg(dut):
         await ClockCycles(dut.clk, 64)
 
     dut._log.info("done")
+
+
+### UTILS #####################################################################
+
+SEL = 0
+SEL = os.environ.get("SEL", SEL)
+
+if SEL == 1 or SEL == "1" or SEL == "01":
+    MASTER_CLOCK = 250_000
+    CHIP_INTERNAL_CLOCK_DIV = 1
+elif SEL == 2 or SEL == "2" or SEL == "10":
+    MASTER_CLOCK = 32_000_000
+    CHIP_INTERNAL_CLOCK_DIV = 128
+
+if SEL == 0 or SEL == "":
+    try:
+        MASTER_CLOCK = int(os.environ.get("MASTER_CLOCK", MASTER_CLOCK))
+    except:
+        if os.environ.get("MASTER_CLOCK", "") == "NTSC":
+            MASTER_CLOCK = 3_579_545
+        pass
+    try:
+        CHIP_INTERNAL_CLOCK_DIV = int(os.environ.get("CHIP_INTERNAL_CLOCK_DIV", CHIP_INTERNAL_CLOCK_DIV))
+    except:
+        pass
+
+ZERO_VOLUME = 2 # int(0.2 * 256) # SN might be outputing low constant DC as silence instead of complete 0V
+MAX_VOLUME = 255/4
+
+def print_chip_state(dut):
+    try:
+        internal = dut.tt_um_rejunity_sn76489_uut
+        print(
+            "W" if dut.uio_in.value & 1 == 0 else " ",
+            dut.ui_in.value, ">||",
+            '{:1d}'.format(int(internal.latch_control_reg.value)), "!",
+            '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
+            '{:4d}'.format(int(internal.tone[0].gen.counter.value)),
+                        "|#|" if internal.tone[0].gen.out == 1 else "|-|", # "|",
+            '{:4d}'.format(int(internal.tone[1].gen.compare.value)),
+            '{:4d}'.format(int(internal.tone[1].gen.counter.value)),
+                        "|#|" if internal.tone[1].gen.out == 1 else "|-|",  #"|",
+            '{:4d}'.format(int(internal.tone[2].gen.compare.value)),
+            '{:4d}'.format(int(internal.tone[2].gen.counter.value)),
+                        "|#|" if internal.tone[2].gen.out == 1 else "|-|",  #"!",
+            "R" if internal.noise[0].gen.reset_lfsr == 1 else " ",
+            "w" if internal.noise[0].gen.is_white_noise == 1 else "p",
+            ["16", "32", "64", "T3"][internal.noise[0].gen.control.value & 3],
+            '{:3d}'.format(int(internal.noise[0].gen.counter)),
+            internal.noise[0].gen.trigger.value,
+            ">" if internal.noise[0].gen.trigger_edge == 1 else " ",
+            internal.noise[0].gen.lfsr.value, ">>",
+            '{:3d}'.format(int(dut.uo_out.value >> 1)),
+                        "@" if dut.uo_out[0].value == 1 else ".")
+    except:
+       print(dut.ui_in.value, ">", dut.uo_out.value)
+
+# 0b1111_1111
+INPUT_ON_RESET          = 0
+BIDIRECTIONAL_ON_RESET  = 0b1111_1111 # Emulate pull-ups on BIDIRECTIONAL pins
+if CHIP_INTERNAL_CLOCK_DIV == 128:
+    WRITE_ENABLED  = 0b11111_10_0 # SEL = 2 :: clock div 128 ; /WE = 0 :: writes enabled
+    WRITE_DISABLED = 0b11111_10_1 # SEL = 2 :: clock div 128 ; /WE = 1 :: writes disabled
+elif CHIP_INTERNAL_CLOCK_DIV == 1:
+    WRITE_ENABLED  = 0b11111_01_0 # SEL = 1 :: no clock div ; /WE = 0 :: writes enabled
+    WRITE_DISABLED = 0b11111_01_1 # SEL = 1 :: no clock div ; /WE = 1 :: writes disabled
+else:
+    WRITE_ENABLED  = 0 # /WE = 0, writes enabled
+    WRITE_DISABLED = 1 # /WE = 1, writes disabled
+
+
+CMD_FREQUENCY  = 0b1000_0000
+CMD_NOISE      = 0b1110_0000
+CMD_ATTENUATOR = 0b1001_0000
+
+async def reset(dut):
+    master_clock = MASTER_CLOCK
+    cycle_in_nanoseconds = 1e9 // master_clock
+    dut._log.info(f"start @{MASTER_CLOCK/1e+6}Mhz, /{CHIP_INTERNAL_CLOCK_DIV}, cycle length {cycle_in_nanoseconds}ns");
+    clock = Clock(dut.clk, cycle_in_nanoseconds, units="ns")
+    cocotb.start_soon(clock.start())
+
+    dut.ui_in.value =   INPUT_ON_RESET
+    dut.uio_in.value =  BIDIRECTIONAL_ON_RESET 
+
+    dut._log.info("reset")
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+
+    dut.rst_n.value = 1    
+
+async def done(dut):
+    dut._log.info("DONE!")
+
+def get_output(dut):
+    return int(dut.uo_out.value)
+
+async def get_max_output(dut, period=1):
+    if period == 0:
+        period = 1024
+    max_val = -1
+    for n in range(period * 2):
+        await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV)
+        max_val = max(max_val, get_output(dut))
+    return max_val
+
+async def record_amplitude_table(dut, channel):
+    channel = channel_index(channel)
+    assert channel != 3 # can't record amplitude from Noise channel right now 
+    await set_silence(dut)
+    await set_tone(dut, 0, period=1)
+    amplitudes = []
+    for vol in range(16):
+        dut.uio_in.value = WRITE_ENABLED
+        dut.ui_in.value = CMD_ATTENUATOR | (channel << 5) | (15 - vol)
+        amplitudes.append(await get_max_output(dut))
+    await set_silence(dut)
+    return amplitudes
+
+def channel_index(channel):
+    if channel == '1' or channel == 'A' or channel == 'a':
+        channel = 0
+    elif channel == '2' or channel == 'B' or channel == 'b':
+        channel = 1
+    elif channel == '3' or channel == 'C' or channel == 'c':
+        channel = 2
+    elif channel == '4' or channel == 'N' or channel == 'noise':
+        channel = 3
+    assert 0 <= channel and channel <= 3
+    return channel
+
+
+async def write(dut, data):
+    dut.uio_in.value = WRITE_ENABLED
+    dut.ui_in.value = data
+    await ClockCycles(dut.clk, 1)
+    print_chip_state(dut)
+
+async def flush(dut):
+    dut.uio_in.value = WRITE_DISABLED
+    await ClockCycles(dut.clk, 1)
+    print_chip_state(dut)
+
+async def set_tone(dut, channel, frequency=-1, period=-1):
+    channel = channel_index(channel)
+    if frequency > 0:
+        period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
+    assert 0 <= channel and channel <= 3
+    assert 0 <= period and period <= 1023
+    if CHIP_INTERNAL_CLOCK_DIV == 1:
+        # never set frequency to 0 when chip is running without a clock divider
+        # when chip has no clock divider, the internal counter will starts counting down immediately
+        # and wrap around to 0x3ff period!
+        await write(dut, CMD_FREQUENCY | (channel << 5) | ((period | 1) & 15))
+        await write(dut, period >> 4)
+        await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
+    else:
+        await write(dut, CMD_FREQUENCY | (channel << 5) | (period & 15))
+        await write(dut, period >> 4)
+    await flush(dut)
+
+async def set_noise_via_tone3(dut, white=True):
+    white = 1 if white else 0
+    await write(dut, CMD_NOISE | (white << 2) | 0b11)
+    await flush(dut)
+
+async def set_noise(dut, white=True, frequency=-1, period=-1, divider=-1):
+    white = 1 if white else 0
+    if frequency > 0:
+        period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
+    if period == 0:
+        period = 1
+    noise_control = -1
+    if divider == 0 or divider == 16 * CHIP_INTERNAL_CLOCK_DIV * 2 or period == 16:
+        noise_control = 0
+    elif divider == 1 or divider == 32 * CHIP_INTERNAL_CLOCK_DIV * 2 or period == 32:
+        noise_control = 1
+    elif divider == 2 or divider == 64 * CHIP_INTERNAL_CLOCK_DIV * 2 or period == 64:
+        noise_control = 2
+    assert 0 <= noise_control and noise_control < 3
+    await write(dut, CMD_NOISE | (white << 2) | noise_control)
+    await flush(dut)
+
+async def set_silence(dut):
+    for ch in range(4):
+        await set_volume(dut, ch, 0)
+
+async def set_volume(dut, channel, vol=0):
+    channel = channel_index(channel)
+    assert 0 <= channel and channel <= 3
+    assert 0 <= vol     and vol <= 15
+    print(channel, vol)
+    await write(dut, CMD_ATTENUATOR | (channel << 5) | (15 - vol))
+    await flush(dut)
+
+async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=False, v0 = ZERO_VOLUME, v1 = MAX_VOLUME):
+    if frequency > 0:
+        period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
+    if period == 0:
+        period = 1
+    assert 0 < period and period <= 1024
+    cycles_to_collect_data = int(period * CHIP_INTERNAL_CLOCK_DIV)
+    if constant:
+        max_error = 0
+        pulses_to_collect = 0
+    else:
+        max_error = 0.15 if noise else 0.01
+        pulses_to_collect = 16 if noise else 2
+        cycles_to_collect_data *= pulses_to_collect * 2
+
+    mid_volume = (v0 + v1) // 2
+    state_changes = 0
+    clocks_to_step = CHIP_INTERNAL_CLOCK_DIV//2 if CHIP_INTERNAL_CLOCK_DIV >= 2 and CHIP_INTERNAL_CLOCK_DIV%2 == 0 else 1
+    for i in range(cycles_to_collect_data//clocks_to_step):
+        last_state = get_output(dut) > mid_volume
+        await ClockCycles(dut.clk, clocks_to_step)
+        # print_chip_state(dut)
+        new_state = get_output(dut) > mid_volume
+        if last_state != new_state:
+            state_changes += 1
+
+    time_passed_to_collect_data = cycles_to_collect_data / MASTER_CLOCK
+    measured_frequency = (state_changes / 2) / time_passed_to_collect_data
+    frequency = MASTER_CLOCK / (CHIP_INTERNAL_CLOCK_DIV * 2 * period)
+
+    if not constant:
+        noise = "noisie" if noise else ""
+        if frequency > 1000:
+            dut._log.info(f"expected {noise} frequency {frequency/1000:4.3f} KHz and measured {measured_frequency/1000:4.3f} KHz")
+        else:
+            dut._log.info(f"expected {noise} frequency {frequency:3.2f} Hz and measured {measured_frequency:3.2f} Hz")
+        assert frequency * (1.0-max_error) <= measured_frequency and measured_frequency <= frequency * (1.0+max_error)
+
+    pulses_to_collect2 = pulses_to_collect*2
+    assert pulses_to_collect2 * (1.0-max_error) <= state_changes and state_changes <= pulses_to_collect2 * (1.0+max_error)
