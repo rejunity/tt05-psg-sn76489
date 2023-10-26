@@ -31,17 +31,16 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
     wire [7:0] data;
     assign data = ui_in;
 
-    reg [6:0] clk_counter;
-    // wire clk_16_strobe = clk_counter[3:0] == 0;
+    reg [$clog2(128)-1:0] clk_counter;
     reg clk_master_strobe;
     always @(*) begin
         case(master_clock_control[1:0])
-            2'b01:  clk_master_strobe = clk;                    // no div, for old SN94624/SN76494 at 250Khz
-                                                                // also useful to speedup record.py
-            2'b10:  clk_master_strobe = clk_counter[6:0] == 0;  // div 128, for TinyTapeout5 running 32..50Mhz
+            2'b01:  clk_master_strobe = clk;                                // no div, for old SN94624/SN76494 at 250Khz
+                                                                            // also useful to speedup record.py
+            2'b10:  clk_master_strobe = clk_counter[$clog2(128)-1:0] == 0;  // div 128, for TinyTapeout5 running 32..50Mhz
             default:
-                    clk_master_strobe = clk_counter[3:0] == 0;  // div  16, for standard SN76489 
-                                                                // running 4Mhz or NTCS/PAL frequencies
+                    clk_master_strobe = clk_counter[$clog2(16)-1:0] == 0;   // div  16, for standard SN76489 
+                                                                            // running 4Mhz or NTCS/PAL frequencies
         endcase
     end
 
