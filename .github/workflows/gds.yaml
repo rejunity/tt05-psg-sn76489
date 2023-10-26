@@ -16,6 +16,18 @@ jobs:
       - name: Build GDS
         uses: TinyTapeout/tt-gds-action@tt05
 
+  gl_test:
+    needs: gds
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: GL test
+        uses: TinyTapeout/tt-gds-action/gl_test@tt05
+    
   viewer:
     needs: gds
     runs-on: ubuntu-latest
