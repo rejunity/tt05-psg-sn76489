@@ -1,15 +1,15 @@
 # Arguments that can be passed to this test suite:
-#   SEL == 0 :: standard SN76489 master clock divider /16
-#   SEL == 1 :: old SN94624/SN76494  no clock divider
-#   SEL == 2 ::                         clock divider /128
+#   SEL == 0                :: standard SN76489 master clock divider /16
+#   SEL == 1                :: old SN94624/SN76494  no clock divider
+#   SEL == 2                ::                         clock divider /128
 #
-#   MASTER_CLOCK :: custom master clock in Hz, default is 4_000_000
+#   MASTER_CLOCK            :: custom master clock in Hz, default is 4_000_000
 #   CHIP_INTERNAL_CLOCK_DIV :: custom clock divider, default is 16
 #
 # Examples running this script:
-#   make                        - run with default parameters
-#   make SEL=1                  - run without clock divider, fastest!
-#   make MASTER_CLOCK=3579545   - run with chip clocked at PAL frequency
+#   make                    :: run with default parameters
+#   make SEL=1              :: run without clock divider, fastest!
+#   make MASTER_CLOCK=3579545 :: run tests with chip clocked at NTSC frequency
 
 
 import os
