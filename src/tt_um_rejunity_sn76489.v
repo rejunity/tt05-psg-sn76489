@@ -22,16 +22,28 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
     localparam FREQUENCY_COUNTER_BITS = 10;
     localparam NOISE_CONTROL_BITS = 3;
 
-    assign uio_oe[7:0] = 8'b1111_1110; // Bidirectional path set to output, except the first /WE pin
+    assign uio_oe[7:0] = 8'b1111_1000; // Bidirectional path set to output, except the first /WE pin
     assign uio_out[7:0] = {8{1'b0}};
     wire reset = ! rst_n;
 
     wire we = ! uio_in[0];
+    wire [1:0] master_clock_control = uio_in[2:1];
     wire [7:0] data;
     assign data = ui_in;
 
-    reg [3:0] clk_counter;
-    wire clk_16_strobe = clk_counter == 0;
+    reg [6:0] clk_counter;
+    // wire clk_16_strobe = clk_counter[3:0] == 0;
+    reg clk_master_strobe;
+    always @(*) begin
+        case(master_clock_control[1:0])
+            2'b01:  clk_master_strobe = clk;                    // no div, for old SN94624/SN76494 at 250Khz
+                                                                // also useful to speedup record.py
+            2'b10:  clk_master_strobe = clk_counter[6:0] == 0;  // div 128, for TinyTapeout5 running 32..50Mhz
+            default:
+                    clk_master_strobe = clk_counter[3:0] == 0;  // div  16, for standard SN76489 
+                                                                // running 4Mhz or NTCS/PAL frequencies
+        endcase
+    end
 
     // The SN76489 has 8 control "registers":
     // - 4 x 4 bit volume registers (attenuation)
@@ -122,7 +134,7 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
         for (i = 0; i < NUM_TONES; i = i + 1) begin : tone
             tone #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
-                .enable(clk_16_strobe),
+                .enable(clk_master_strobe),
                 .reset(reset),
                 .compare(control_tone_freq[i]),
                 .out(channels[i])
@@ -150,7 +162,7 @@ module tt_um_rejunity_sn76489 #( // parameter CHANNEL_OUTPUT_BITS = 8,
 
             noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
                 .clk(clk),
-                .enable(clk_16_strobe),
+                .enable(clk_master_strobe),
                 .reset(reset),
                 .restart_noise(restart_noise),
                 .control(control_noise[i]),

@@ -5,6 +5,11 @@ from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 MASTER_CLOCK = 4_000_000 # 4 MHz frequency of SN as used in BBC Micro,          0x11C = 440 Hz
 # MASTER_CLOCK = 3_579_545 # PAL frequency of SN as used in Sega Master System,  0xFE = 440 Hz
 CHIP_INTERNAL_CLOCK_DIV = 16
+# MASTER_CLOCK = 250_000
+# CHIP_INTERNAL_CLOCK_DIV = 1
+# MASTER_CLOCK = 32_000_000
+# CHIP_INTERNAL_CLOCK_DIV = 128
+
 
 ZERO_VOLUME = 2 # int(0.2 * 256) # SN might be outputing low constant DC as silence instead of complete 0V
 MAX_VOLUME = 255/4
@@ -37,6 +42,22 @@ def print_chip_state(dut):
     except:
        print(dut.ui_in.value, ">", dut.uo_out.value)
 
+# 0b1111_1111
+INPUT_ON_RESET          = 0
+BIDIRECTIONAL_ON_RESET  = 0b1111_1111 # Emulate pull-ups on BIDIRECTIONAL pins
+WRITE_ENABLED  = 0 # /WE = 0, writes enabled
+WRITE_DISABLED = 1 # /WE = 1, writes disabled
+# WRITE_ENABLED  = 0b11111_11_0 # /WE = 0, writes enabled
+# WRITE_DISABLED = 0b11111_11_1 # /WE = 1, writes disabled
+# WRITE_ENABLED  = 0b11111_01_0 # /WE = 0, writes enabled
+# WRITE_DISABLED = 0b11111_01_1 # /WE = 1, writes disabled
+# WRITE_ENABLED  = 0b11111_10_0 # /WE = 0, writes enabled
+# WRITE_DISABLED = 0b11111_10_1 # /WE = 1, writes disabled
+
+
+CMD_FREQUENCY  = 0b1000_0000
+CMD_NOISE      = 0b1110_0000
+CMD_ATTENUATOR = 0b1001_0000
 
 async def reset(dut):
     master_clock = MASTER_CLOCK # // 16
@@ -45,8 +66,8 @@ async def reset(dut):
     clock = Clock(dut.clk, cycle_in_nanoseconds, units="ns")
     cocotb.start_soon(clock.start())
 
-    dut.ui_in.value =           0
-    dut.uio_in.value =          0b1111_1111 # Emulate pull-ups on BIDIRECTIONAL pins
+    dut.ui_in.value =   INPUT_ON_RESET
+    dut.uio_in.value =  BIDIRECTIONAL_ON_RESET 
 
     dut._log.info("reset")
     dut.rst_n.value = 0
@@ -77,7 +98,7 @@ async def record_amplitude_table(dut, channel):
     await set_tone(dut, 0, period=1)
     amplitudes = []
     for vol in range(16):
-        dut.uio_in.value = 0                        # /WE = 0, writes enabled
+        dut.uio_in.value = WRITE_ENABLED
         dut.ui_in.value = CMD_ATTENUATOR | (channel << 5) | (15 - vol)
         amplitudes.append(await get_max_output(dut))
     await set_silence(dut)
@@ -95,20 +116,17 @@ def channel_index(channel):
     assert 0 <= channel and channel <= 3
     return channel
 
+
 async def write(dut, data):
-    dut.uio_in.value = 0                            # /WE = 0, writes enabled
+    dut.uio_in.value = WRITE_ENABLED
     dut.ui_in.value = data
     await ClockCycles(dut.clk, 1)
     print_chip_state(dut)
 
 async def flush(dut):
-    dut.uio_in.value = 1                            # /WE = 1, writes disabled
+    dut.uio_in.value = WRITE_DISABLED
     await ClockCycles(dut.clk, 1)
     print_chip_state(dut)
-
-CMD_FREQUENCY  = 0b1000_0000
-CMD_NOISE      = 0b1110_0000
-CMD_ATTENUATOR = 0b1001_0000
 
 async def set_tone(dut, channel, frequency=-1, period=-1):
     channel = channel_index(channel)
@@ -169,17 +187,18 @@ async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=Fals
         pulses_to_collect = 16 if noise else 2
         cycles_to_collect_data *= pulses_to_collect * 2
     
+    print("cycles_to_collect_data", cycles_to_collect_data)
+
     mid_volume = (v0 + v1) // 2
     state_changes = 0
-    for i in range(cycles_to_collect_data//8):
+    clocks_to_step = CHIP_INTERNAL_CLOCK_DIV//2 if CHIP_INTERNAL_CLOCK_DIV >= 2 and CHIP_INTERNAL_CLOCK_DIV%2 == 0 else 1
+    for i in range(cycles_to_collect_data//clocks_to_step):
         last_state = get_output(dut) > mid_volume
-        await ClockCycles(dut.clk, 8)
+        await ClockCycles(dut.clk, clocks_to_step)
         # print_chip_state(dut)
         new_state = get_output(dut) > mid_volume
         if last_state != new_state:
             state_changes += 1
-
-    # print(period, cycles_to_collect_data, state_changes)
 
     time_passed_to_collect_data = cycles_to_collect_data / MASTER_CLOCK
     measured_frequency = (state_changes / 2) / time_passed_to_collect_data
