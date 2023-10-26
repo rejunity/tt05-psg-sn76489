@@ -22,7 +22,7 @@ VGM_FILENAME = os.environ.get("VGM_FILENAME", VGM_FILENAME)
 MAX_TIME = -1
 try:
     MAX_TIME = int(os.environ.get("MAX_TIME", VGM_FILENAME))
-finally:
+except:
     pass
 
 cycle_in_nanoseconds = 0

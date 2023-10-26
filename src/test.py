@@ -2,14 +2,30 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer, ClockCycles
 
+import os
+SEL = 0
+SEL = os.environ.get("SEL", SEL)
+
 # MASTER_CLOCK = 3_579_545 # PAL frequency of SN as used in Sega Master System,  0xFE = 440 Hz
 MASTER_CLOCK = 4_000_000 # 4 MHz frequency of SN as used in BBC Micro,          0x11C = 440 Hz
 CHIP_INTERNAL_CLOCK_DIV = 16
-# MASTER_CLOCK = 250_000
-# CHIP_INTERNAL_CLOCK_DIV = 1
-# MASTER_CLOCK = 32_000_000
-# CHIP_INTERNAL_CLOCK_DIV = 128
 
+if SEL == 1 or SEL == "1" or SEL == "01":
+    MASTER_CLOCK = 250_000
+    CHIP_INTERNAL_CLOCK_DIV = 1
+elif SEL == 2 or SEL == "2" or SEL == "10":
+    MASTER_CLOCK = 32_000_000
+    CHIP_INTERNAL_CLOCK_DIV = 128
+
+if SEL == 0 or SEL == "":
+    try:
+        MASTER_CLOCK = int(os.environ.get("MASTER_CLOCK", MASTER_CLOCK))
+    except:
+        pass
+    try:
+        CHIP_INTERNAL_CLOCK_DIV = int(os.environ.get("CHIP_INTERNAL_CLOCK_DIV", CHIP_INTERNAL_CLOCK_DIV))
+    except:
+        pass
 
 ZERO_VOLUME = 2 # int(0.2 * 256) # SN might be outputing low constant DC as silence instead of complete 0V
 MAX_VOLUME = 255/4
@@ -18,7 +34,7 @@ def print_chip_state(dut):
     try:
         internal = dut.tt_um_rejunity_sn76489_uut
         print(
-            "W" if dut.uio_in.value == 0 else " ",
+            "W" if dut.uio_in.value & 1 == 0 else " ",
             dut.ui_in.value, ">||",
             '{:1d}'.format(int(internal.latch_control_reg.value)), "!",
             '{:4d}'.format(int(internal.tone[0].gen.compare.value)),
