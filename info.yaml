@@ -69,7 +69,7 @@ documentation:
       
       The SN76489 chip family competed with the similar [General Instrument AY-3-8910](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910).
 
-      ![The Original SN76489 pinout](./docs/SN76489.jpg)
+      ![The Original SN76489 pinout](./docs/SN76489_pinout.png)
 
       # Differences from the original hardware
 
@@ -120,8 +120,7 @@ documentation:
       2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on decapped VDP chip from Sega Mega Drive which included a SN76496 variant.
 
       # Orginal datasheet and Programming Manual
-      Original datasheet and programming manual can be found [here](https://ftp.whtech.com/datasheets%20and%20manuals/Datasheets%20-%20TI/SN76489.pdf).
-      Local repo [reference](./docs/SN76489AN_-_Manual.pdf) or [2nd try](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_-_Manual.pdf).
+      Original datasheet and programming manual is [included in the repository](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_anual.pdf).
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
