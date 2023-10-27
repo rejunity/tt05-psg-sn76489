@@ -69,6 +69,8 @@ documentation:
       
       The SN76489 chip family competed with the similar [General Instrument AY-3-8910](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910).
 
+      ![The Original SN76489 pinout](./docs/SN76489.jpg)
+
       # Differences from the original hardware
 
       This Verilog implementation being a completely digital and synchronous design has the following differences from the original SN76489 design.
@@ -118,6 +120,7 @@ documentation:
 
       # Orginal datasheet and Programming Manual
       Original datasheet and programming manual can be found [here](https://ftp.whtech.com/datasheets%20and%20manuals/Datasheets%20-%20TI/SN76489.pdf).
+      Local repo [reference](./docs/SN76489AN_-_Manual.pdf) or [2nd try](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_-_Manual.pdf).
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
