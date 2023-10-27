@@ -91,9 +91,9 @@ documentation:
 
       This implementation produces unsigned output waveforms without DC offset.
 
-      #### **/OE** and **READY** pins are omitted for simplicity
+      #### **/CE** and **READY** pins are omitted for simplicity
 
-      **/OE** control pin is omitted in this design. The behavior is the same as if **/OE** is tied *low* and chip is always enabled.
+      **/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/OE** is tied *low* and chip is always enabled.
 
       Unlike the original SN76489 which took 32 cycles to update registers, this implementation updates registers in a single cycle and chip behaves as always **READY**.
 
