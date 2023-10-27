@@ -23,91 +23,139 @@ yaml_version: 4
 # As everyone will have access to all designs, try to make it easy for someone new to your design to know what
 # it does and how to operate it. This info will be automatically collected and used to make a datasheet for the chip.
 documentation: 
-  author:       "rej"
+  author:       "ReJ aka Renaldas Zioma"
   title:        "Classic 8-bit era Programmable Sound Generator SN76489"
   language:     "Verilog"
   description:  "The SN76489 Digital Complex Sound Generator (DCSG) is a programmable sound generator chip from Texas Instruments."
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-      This Verilog implementation of the SN76489 programmable sound generator aims to:
-      1) closely replicate the behavior of the original chip as introduced in 1980 by Texas Instruments
-      2) while being produced with the modern fabrication process.
+      This Verilog implementation is a replica of a classical [SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489) programmable sound generator.
+      The whole SN76489 fits on a **single** TinyTapeout **tile** and it consists of roughly a **1000** logic gates. Absolutely tiny by the modern standards!
 
-      Additionally the aim is to provide readable and well commented code for educational and hardware preservation purposes.
-      Significant effort was put into a thorough test suite for regression testing and validation against the original chip behavior.
+      The aims of this project are:
+      1. **closely** replicate the behavior and design of the original SN76489 chip
+      2. while being produced with the **modern fabrication** process.
 
-      SN76489 chip contains:
-      - 3 square wave tone generators
-      - 1 noise generator with two types of noise
-      - A wide range of frequencies
-      - 16 different volume levels
+      Additional goal is to provide a readable and well documented code for educational and hardware **preservation** purposes.
+      Significant effort was put into a thorough **test suite** for regression testing and validation against the original chip behavior.
 
-      Variants of SN76489 chip were used in a number of home computers, game consoles and arcade boards:
+      ## The future goals
+
+      Incorporate analog OpAmp into the design to match the original SN76489 schematics.
+
+      # Chip technical capabilities
+
+      - **3 square wave** tone generators
+      - **1 noise** generator
+      - 2 types of noise, **white** and **periodic**
+      - Capable to produce a range of waves typically from **122 Hz** to **125 kHz**, defined by **10-bit** registers.
+      - **16** different volume levels
+
+      # Historical use of SN76489
+
+      SN76489 family of programmable sound generators was introduced by Texas Instruments in 1980. Variants of SN76489 were used in a number of home computers, game consoles and arcade boards:
+
       - home computers: TI-99/4, BBC Micro, IBM PCjr, Sega SC-3000, Tandy 1000
       - game consoles: ColecoVision, Sega SG-1000, Sega Master System, Game Gear, Neo Geo Pocket and Sega Genesis
       - arcade machines by Sega & Konami and would usually include 2 or 4 SN76489 chips
+      
       The SN76489 chip family competed with the similar General Instrument AY-3-8910.
+
+      # Module parametrization
 
       The module is parameterized to replicate the behavior of several SN76489 variants by providing options for:
       - noise tapped bits,
       - tone counter and noise LFSR shift register size,
       - variable clock divider
 
-      This Verilog implementation varies from the the original SN76489 in the following ways:
-      - two alternative ways to output audio signal, while the original chip had analog channel summation using internal OpAmp and analog output, this is a purely digital design that does digital signal summation
-        a) digital 8-bit audio output suitable for external Digital to Analog Converter (DAC)
-        b) pseudo analog output using Pulse Width Modulation (PWM)
-      - outputs of all 4 channels are exposed, while the original chip had only single master audio output
-      - /OE pin is omitted for simplicity, behavior is the same as if /OE is tied low and chip is always enabled
-      - READY pin is omitted for simplicity, unlike the original SN76489 that took 32 cycles to update registers, this implementation updates registers in a single cycle and chip behaves as always READY
+      # Difference from the original hardware
 
-      Additionally, a configurable clock divider was introduced. Clock divider can be controlled through SEL0 and SEL1 pins. This allows to select between 3 chip variants:
-      1) original SN76489 with the internal clock divided by 16. This chip was intended to be used with PAL and NTSC clock frequencies. In BBC Micro SN76489 was clocked precisely at 4 MHz.
-      2) SN94624/SN76494 variants had no internal clock divider and were intended for 250 KHz external clocks.
-      3) the newly introduced configuration for high frequency clock in TinyTapeout and is suitable for a range between 25 MHz and 50 Mhz.  In this configuration the clock is internally divided by 128.
+      This Verilog implementation being a completely digital and synchronous design has the following differences from the original SN76489 design.
+
+      ## Audio signal output
+
+      While the original chip had analog summation of the channels with integrated OpAmp and sported a single analog output, this implementation does digital signal summation and digital output.
+      The module provides two alternative outputs for the generated audio signal:
+      1. digital 8-bit audio output suitable for external Digital to Analog Converter (DAC)
+      2. pseudo analog output on a single pin using Pulse Width Modulation (PWM)
+
+      ## Separate 4 channel output
+
+      Outputs of all 4 channels are exposed along with the master output. This allows to validate and mix signals externally.
+      In contrast the original chip was limited to a single audio output pin due to PDIP-16 package.
+
+      ## No DC offset
+
+      This implementation produces unsigned output waveforms without DC offset.
+
+      ## **/OE** and **READY** pins are omitted for simplicity
+
+      **/OE** control pin is omitted in this design. The behavior is the same as if **/OE** is tied *low* and chip is always enabled.
+
+      Unlike the original SN76489 which took 32 cycles to update registers, this implementation updates registers in a single cycle and chip behaves as always **READY**.
+
+      ## Synchronous reset and single phase clock
+
+      The original SN76489 design would internally employ 2 phases of the clock for the operation. As well asynchronous reset was employed.
+      
+      To make it easier to synthesize and test on FPGAs this implementation uses single clock phase and synchronous reset for all resisters.
+
+      ## Externally configurable clock divider
+
+      A configurable clock divider was introduced. Clock divider can be controlled through **SEL0** and **SEL1** control pins and allows to select between 3 chip variants:
+
+      1. the original SN76489 with the master clock divided by 16 internally. This chip was usually clocked with PAL and NTSC frequencies. In BBC Micro SN76489 was clocked at 4 MHz.
+      2. SN94624/SN76494 variants without internal clock divider. These chips were intended for use with 250 to 500 KHz clocks.
+      3. high frequency clock configuration for TinyTapeout, suitable for a range between 25 MHz and 50 Mhz. In this configuration the master clock is internally divided by 128.
+
+      # SN76489 reverse engineering
 
       This implementation is informed by the following reverse engineering efforts:
-      * https://github.com/gchiasso/76489A-analysis - based on the SN76489A die shots
-      * https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG - based on SN76496 variant included in the Sega Mega Drive VDP chip
 
-      Visit [SN76489 Wikipedia page](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489) for more general information.
+      1. [Anotations and analysis](https://github.com/gchiasso/76489A-analysis) for the decapped SN76489A chip.
+      2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on decapping the Sega Mega Drive VDP chip which includes SN76496 variant.
+
+
+      # Orginal datasheet and Programming Manual
       Original datasheet and programming manual can be found [here](https://ftp.whtech.com/datasheets%20and%20manuals/Datasheets%20-%20TI/SN76489.pdf).
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
-      Explain how to test your project
+      
+      Digilent R2R PMOD
+      RC filter, amplifier, speaker schematics
 
 # A description of what the inputs do
   inputs:               
-    - D0 - SN76489 data bus
-    - D1 - SN76489 data bus
-    - D2 - SN76489 data bus
-    - D3 - SN76489 data bus
-    - D4 - SN76489 data bus
-    - D5 - SN76489 data bus
-    - D6 - SN76489 data bus
-    - D7 - SN76489 data bus
+    - D0 data bus
+    - D1 data bus
+    - D2 data bus
+    - D3 data bus
+    - D4 data bus
+    - D5 data bus
+    - D6 data bus
+    - D7 data bus
 # A description of what the outputs do
   outputs:
-    - digital audio LSB - matches Digilent R2R PMOD
+    - digital audio LSB
     - digital audio
     - digital audio
     - digital audio
     - digital audio
     - digital audio
     - digital audio
-    - digital audio MSB - matches Digilent R2R PMOD
+    - digital audio MSB
 # A description of what the bidirectional I/O pins do
   bidirectional:
-    - /WE - (in) SN76489 inverted write enable
-    - SEL0 - (in) 0 = clock divided by 16 (SN76489 mode), 1 = no divider (SN94624/SN76494 mode)
-    - SEL1 - (in) 0 = clock divided by 16 (SN76489 mode), 1 = clock divided by 128
-    - channel 0 - (out) pseudo analog / PWM
-    - channel 1 - (out) pseudo analog / PWM
-    - channel 2 - (out) pseudo analog / PWM
-    - channel 3 - (out) pseudo analog / PWM
-    - AUDIO OUT - (out) AUDIO OUT pin on original SN76489, pseudo analog / PWM
+    - (in)  /WE inverted write enable
+    - (in)  SEL0 0 = clock div 16 (SN76489 mode), 1 = no divider (SN94624/SN76494 mode)
+    - (in)  SEL1 0 = clock div 16 (SN76489 mode), 1 = clock div 128
+    - (out) channel 0 (PWM)
+    - (out) channel 1 (PWM)
+    - (out) channel 2 (PWM)
+    - (out) channel 3 (PWM)
+    - (out) AUDIO OUT pseudo analog master output (PWM)
 
 # The following fields are optional
   tag:          "psg, music, sound" # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
