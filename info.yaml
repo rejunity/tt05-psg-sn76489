@@ -32,12 +32,13 @@ documentation:
   how_it_works: |
       Explain how your project works
       https://en.wikipedia.org/wiki/Texas_Instruments_SN76489
+      BBC Micro, Tandy 100, Sega SG1000
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
       Explain how to test your project
 
-# A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
+# A description of what the inputs do
   inputs:               
     - D0 - data bus
     - D1 - data bus
@@ -47,21 +48,21 @@ documentation:
     - D5 - data bus
     - D6 - data bus
     - D7 - data bus
-# A description of what the outputs do (e.g. status LED, SPI MISO, etc)
+# A description of what the outputs do
   outputs:
     - audio out (pwm)
-    - digita audio least significant bit
-    - digita audio 
-    - digita audio 
-    - digita audio 
-    - digita audio 
-    - digita audio 
-    - digita audio most significant bit
-# A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
+    - digital audio least significant bit
+    - digital audio 
+    - digital audio 
+    - digital audio 
+    - digital audio 
+    - digital audio 
+    - digital audio most significant bit
+# A description of what the bidirectional I/O pins do
   bidirectional:
-    - /WE - inverted write enable
-    - none
-    - none
+    - /WE - (in) inverted write enable
+    - SEL0 - (in) 0 = SN76489 clock divided by 16, 1 = SN94624/SN76494 without clock divider
+    - SEL1 - (in) 0 = SN76489 clock divided by 16, 1 = clock divided by 128
     - none
     - none
     - none
@@ -70,8 +71,8 @@ documentation:
 
 # The following fields are optional
   tag:          "psg, music, sound" # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
-  external_hw:  ""        # Describe any external hardware needed
+  external_hw:  "DAC, RC filter, amplifier, speaker" # Describe any external hardware needed
   discord:      "rzioma"  # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     ""        # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     4000000   # Clock frequency in Hz (if required)
-  picture:      ""        # relative path to a picture in your repository (must be 512kb or less)
+  picture:      "docs/SN76489_small.jpg" # relative path to a picture in your repository (must be 512kb or less)
