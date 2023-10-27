@@ -31,10 +31,10 @@ documentation:
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
       This Verilog implementation is a replica of a classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
-      The whole SN76489 is roughly a 1000 logic gates and fits on a **single tile** in TinyTapeout - absolutely tiny by the modern standards!
+      The whole replica of SN76489 is roughly a 1000 logic gates and fits on a **single tile** in TinyTapeout - absolutely tiny by the modern standards!
 
       ### Modern replica of a classic
-      The aims of this project are to closely **replicate** the behavior and **design of the original** SN76489 while leveraging the **modern fabrication** process.
+      The aims of this project are to closely replicate the behavior and **design of the original** SN76489 while leveraging the **modern fabrication** process.
 
       Additional goal is to provide a readable and well documented code for educational and hardware **preservation** purposes.
       Significant effort was put into a thorough **test suite** for regression testing and validation against the original chip behavior.
@@ -51,7 +51,7 @@ documentation:
       - Capable to produce a range of waves typically from **122 Hz** to **125 kHz**, defined by **10-bit** registers.
       - **16** different volume levels
 
-      ### Module parametrization
+      #### Module parametrization
 
       The module is parameterized to replicate the behavior of several SN76489 variants by providing options for:
 
@@ -64,7 +64,7 @@ documentation:
       SN76489 family of programmable sound generators was introduced by Texas Instruments in 1980. Variants of SN76489 were used in a number of home computers, game consoles and arcade boards:
 
       - home computers: [TI-99/4](https://en.wikipedia.org/wiki/TI-99/4A), [BBC Micro](https://en.wikipedia.org/wiki/BBC_Micro), [IBM PCjr](https://en.wikipedia.org/wiki/IBM_PCjr), [Sega SC-3000](https://en.wikipedia.org/wiki/SG-1000#SC-3000), [Tandy 1000](https://en.wikipedia.org/wiki/Tandy_1000)
-      - game consoles: [ColecoVision](https://en.wikipedia.org/wiki/ColecoVision), [Sega SG-1000](https://en.wikipedia.org/wiki/SG-1000), [Sega Master System](https://en.wikipedia.org/wiki/Master_System), [Game Gear](https://en.wikipedia.org/wiki/Game_Gear), [Neo Geo Pocket and Sega Genesis](https://en.wikipedia.org/wiki/Sega_Genesis)
+      - game consoles: [ColecoVision](https://en.wikipedia.org/wiki/ColecoVision), [Sega SG-1000](https://en.wikipedia.org/wiki/SG-1000), [Sega Master System](https://en.wikipedia.org/wiki/Master_System), [Game Gear](https://en.wikipedia.org/wiki/Game_Gear), [Neo Geo Pocket](https://en.wikipedia.org/wiki/Neo_Geo_Pocket) and [Sega Genesis](https://en.wikipedia.org/wiki/Sega_Genesis)
       - arcade machines by Sega & Konami and would usually include 2 or 4 SN76489 chips
       
       The SN76489 chip family competed with the similar [General Instrument AY-3-8910](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910).
@@ -79,6 +79,7 @@ documentation:
 
       While the original chip had analog summation of the channels with integrated OpAmp and sported a single analog output, this implementation does digital signal summation and digital output.
       The module provides two alternative outputs for the generated audio signal:
+
       1. digital 8-bit audio output suitable for external Digital to Analog Converter (DAC)
       2. pseudo analog output on a single pin using Pulse Width Modulation (PWM)
 
@@ -95,19 +96,19 @@ documentation:
 
       **/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/OE** is tied *low* and chip is always enabled.
 
-      Unlike the original SN76489 which took 32 cycles to update registers, this implementation updates registers in a single cycle and chip behaves as always **READY**.
+      Unlike the original SN76489 which took 32 cycles to update registers, this implementation handles register writes in a single cycle and chip behaves as always **READY**.
 
       #### Synchronous reset and single phase clock
 
-      The original SN76489 design would internally employ 2 phases of the clock for the operation. As well asynchronous reset was employed.
+      The original SN76489 design employed 2 phases of the clock for the operation of the registers. Reset was asynchronous.
       
-      To make it easier to synthesize and test on FPGAs this implementation uses single clock phase and synchronous reset for all resisters.
+      To make it easier to synthesize and test on FPGAs this implementation uses single clock phase and synchronous reset for registers.
 
       #### Externally configurable clock divider
 
       A configurable clock divider was introduced. Clock divider can be controlled through **SEL0** and **SEL1** control pins and allows to select between 3 chip variants:
 
-      1. the original SN76489 with the master clock divided by 16 internally. This chip was usually clocked with PAL and NTSC frequencies. In [BBC Micro](https://en.wikipedia.org/wiki/BBC_Micro) SN76489 was clocked at 4 MHz.
+      1. the original SN76489 with the master clock internally divided by 16. This classical chip was intended for PAL and NTSC frequencies. However in [BBC Micro](https://en.wikipedia.org/wiki/BBC_Micro) 4 MHz clock was employed.
       2. SN94624/SN76494 variants without internal clock divider. These chips were intended for use with 250 to 500 KHz clocks.
       3. high frequency clock configuration for TinyTapeout, suitable for a range between 25 MHz and 50 Mhz. In this configuration the master clock is internally divided by 128.
 
@@ -116,7 +117,7 @@ documentation:
       This implementation is informed by the following reverse engineering efforts:
 
       1. [Anotations and analysis](https://github.com/gchiasso/76489A-analysis) of the decapped SN76489A chip.
-      2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on decapping the Sega Mega Drive VDP chip which includes SN76496 variant.
+      2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on decapped VDP chip from Sega Mega Drive which included a SN76496 variant.
 
       # Orginal datasheet and Programming Manual
       Original datasheet and programming manual can be found [here](https://ftp.whtech.com/datasheets%20and%20manuals/Datasheets%20-%20TI/SN76489.pdf).
