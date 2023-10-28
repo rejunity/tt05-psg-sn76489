@@ -221,6 +221,47 @@ async def test_white_noise_via_divider(dut):
 
     await done(dut)
 
+@cocotb.test()
+async def test_master_output_is_clamped_at_the_top(dut):
+    await reset(dut)
+
+    for chan in '123':
+        await set_tone(dut, chan, period=1)
+    for chan in '1234':
+        await set_volume(dut, chan, 15)    
+    await set_noise_via_tone3(dut, white=False) # reset noise
+    await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV * 2 * (PERIODIC_NOISE_FREQUENCY_DIVISION_FACTOR - 2))
+    await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV)
+    await ClockCycles(dut.clk, 2)
+
+    master_0 = get_output(dut)
+    try: # can not be run in Gate Level tests
+        phase_0 = \
+            internal.tone[0].gen.out == 1 and \
+            internal.tone[1].gen.out == 1 and \
+            internal.tone[2].gen.out == 1 and \
+            internal.noise[0].gen.out == 1
+    except:
+        phase_0 = True
+
+    await ClockCycles(dut.clk, CHIP_INTERNAL_CLOCK_DIV)
+
+    master_1 = get_output(dut)
+    try: # can not be run in Gate Level tests
+        phase_1 = \
+            internal.tone[0].gen.out == 1 and \
+            internal.tone[1].gen.out == 1 and \
+            internal.tone[2].gen.out == 1 and \
+            internal.noise[0].gen.out == 1
+    except:
+        phase_1 = False
+
+    assert phase_0 ^ phase_1
+    assert (master_0 >= MAX_MASTER_VOLUME or master_1 >= MAX_MASTER_VOLUME)
+
+    await done(dut)
+
+
 # @cocotb.test()
 # async def test_noise_restarts(dut):
 #     await reset(dut)
@@ -325,7 +366,8 @@ if SEL == 0 or SEL == "":
         pass
 
 ZERO_VOLUME = 2 # int(0.2 * 256) # SN might be outputing low constant DC as silence instead of complete 0V
-MAX_VOLUME = 255/4
+MAX_MASTER_VOLUME = 255
+MAX_CHANNEL_VOLUME = MAX_MASTER_VOLUME/4
 
 def print_chip_state(dut):
     try:
@@ -494,7 +536,7 @@ async def set_volume(dut, channel, vol=0):
     await write(dut, CMD_ATTENUATOR | (channel << 5) | (15 - vol))
     await flush(dut)
 
-async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=False, v0 = ZERO_VOLUME, v1 = MAX_VOLUME):
+async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=False, v0 = ZERO_VOLUME, v1 = MAX_CHANNEL_VOLUME):
     if frequency > 0:
         period = MASTER_CLOCK // (CHIP_INTERNAL_CLOCK_DIV * 2 * frequency)
     if period == 0:
