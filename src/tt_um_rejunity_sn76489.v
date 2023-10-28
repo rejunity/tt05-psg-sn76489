@@ -19,8 +19,8 @@ module tt_um_rejunity_sn76489 #( parameter CHANNEL_OUTPUT_BITS = 10,
     localparam FREQUENCY_COUNTER_BITS = 10;
     localparam NOISE_CONTROL_BITS = 3;
 
-    assign uio_oe[7:0] = 8'b1111_1000; // Bidirectional path set to output, except the first /WE pin
-    assign uio_out[7:0] = {8{1'b0}};
+    assign uio_oe[7:0] = 8'b1111_1000; // Bidirectional path set to output, except the first 3 pins: /WE, SEL0, SEL1
+    assign uio_out[2:0] =      3'b000; //                                          the upper 5 pins: 4 channels PWM and master AUDIO_OUT in PWM mode
     wire reset = ! rst_n;
 
     wire we = ! uio_in[0];
@@ -152,7 +152,7 @@ module tt_um_rejunity_sn76489 #( parameter CHANNEL_OUTPUT_BITS = 10,
                                  MASTER_MAX_OUTPUT_VOLUME;                                  // ALSO prevent value wraparound in the master output
                                                                                             // in case of summation overflow clamp output to a maximum value
 
-    // PWM
+    // PWM outputs
     generate
         for (i = 0; i < NUM_CHANNELS; i = i + 1) begin
             pwm #(.VALUE_BITS(CHANNEL_OUTPUT_BITS)) pwm (
