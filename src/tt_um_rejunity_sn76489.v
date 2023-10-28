@@ -141,30 +141,34 @@ module tt_um_rejunity_sn76489 #( parameter CHANNEL_OUTPUT_BITS = 10,
         end
     endgenerate
 
+    // master is the total output = sum of all channels
     localparam MASTER_BITS = $clog2(NUM_CHANNELS) + CHANNEL_OUTPUT_BITS;
     localparam MASTER_MAX_OUTPUT_VOLUME = {MASTER_OUTPUT_BITS{1'b1}};
     wire master_overflow;
     wire [MASTER_BITS-1:0] master;
-    assign { master_overflow, master } = volumes[0] + volumes[1] + volumes[2] + volumes[3];
-    assign uo_out[MASTER_OUTPUT_BITS-1:0] = (master_overflow == 0) ? master[MASTER_BITS-1 -: MASTER_OUTPUT_BITS] : MASTER_MAX_OUTPUT_VOLUME;
+    assign { master_overflow, master } = volumes[0] + volumes[1] + volumes[2] + volumes[3]; // sum all channels
+    assign uo_out[MASTER_OUTPUT_BITS-1:0] = 
+        (master_overflow == 0) ? master[MASTER_BITS-1 -: MASTER_OUTPUT_BITS] :              // pass highest MASTER_OUTPUT_BITS to the DAC output pins
+                                 MASTER_MAX_OUTPUT_VOLUME;                                  // ALSO prevent value wraparound in the master output
+                                                                                            // in case of summation overflow clamp output to a maximum value
 
+    // PWM
+    generate
+        for (i = 0; i < NUM_CHANNELS; i = i + 1) begin
+            pwm #(.VALUE_BITS(CHANNEL_OUTPUT_BITS)) pwm (
+                .clk(clk),
+                .reset(reset),
+                .value(volumes[i]),
+                .out(uio_out[3+i])
+                );
+        end
+    endgenerate
 
-    // generate
-    //     for (i = 0; i < NUM_CHANNELS; i = i + 1) begin
-    //         pwm #(.VALUE_BITS(CHANNEL_OUTPUT_BITS)) pwm (
-    //             .clk(clk),
-    //             .reset(reset),
-    //             .value(volumes[i]),
-    //             .out(uio_out[3+i])
-    //             );
-    //     end
-    // endgenerate
-
-    // pwm #(.VALUE_BITS(MASTER_OUTPUT_BITS)) pwm (
-    //     .clk(clk),
-    //     .reset(reset),
-    //     .value(master),
-    //     .out(uio_out[7])
-    //     );
+    pwm #(.VALUE_BITS(MASTER_OUTPUT_BITS)) pwm (
+        .clk(clk),
+        .reset(reset),
+        .value(master),
+        .out(uio_out[7])
+        );
     
 endmodule
