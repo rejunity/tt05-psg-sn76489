@@ -30,12 +30,12 @@ documentation:
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-      This Verilog implementation is a replica of a classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
-      With roughly a 1400 logic gates replica of SN76489 fits on a **single tile** in TinyTapeout.
+      This Verilog implementation is a replica of the classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
+      With roughly a 1400 logic gates replica of the SN76489 fits on a **single tile** in TinyTapeout.
 
       ### Modern replica of a classic
       
-      The main aims of this project are:
+      The main goals of this project are:
 
       1. closely replicate the behavior and eventually **design of the original** SN76489
       2. provide a readable and well documented code for educational and hardware **preservation** purposes
@@ -55,17 +55,37 @@ documentation:
       - Capable to produce a range of waves typically from **122 Hz** to **125 kHz**, defined by **10-bit** registers.
       - **16** different volume levels
 
-      #### Module parametrization
+      #### Registers
 
-      The module is parameterized and can match the behavior of several SN76489 variants. The following parametrization options are provided:
+      The behavior of the SN76489 is defined with 8 "registers" - 4 x 4 bit volume registers, 3 x 10 bit tone registers and 1 x 3 bit noise configuration register.
 
-      - noise tapped bits
-      - tone counter and noise LFSR shift register size
-      - variable clock divider
+      | Channel | Volume registers       | Tone & noise registers   |
+      |---------|------------------------|--------------------------|
+      | 0       | Channel #0 attenuation | Tone #0 frequency        |
+      | 1       | Channel #1 attenuation | Tone #1 frequency        |
+      | 2       | Channel #2 attenuation | Tone #2 frequency        |
+      | 3       | Channel #3 attenuation | Noise type and frequency |
 
-      # Historical use of SN76489
+      #### Square wave tone generators 
 
-      SN76489 family of programmable sound generators was introduced by Texas Instruments in 1980. Variants of SN76489 were used in a number of home computers, game consoles and arcade boards:
+      Square waves are produced by counting down the 10-bit counters. Each time counter reaches the 0 it is reloaded with the corresponding value from the configuration register and
+      the output bit of the channel is flipped producing square wave.
+
+      #### Noise geneator
+
+      Noise is produced with 15-bit [Linear-feedback Shift Register (LFSR)](https://en.wikipedia.org/wiki/Linear-feedback_shift_register) that flips the output bit pseudo randomly.
+      The shift rate of the LFSR register is controller either by one of the 3 hardcoded power-of-two dividers or output from the channel #2 tone generator is used.
+
+      ### Attenuation
+
+      Each of the four SN76489 channels have dedicated attenuation modules. The SN76489 has 16 steps of attenuation, each step is 2 dB and maximum possible attenuation is 28 dB.
+      Note taht attenuation defitinition is the opposite of volume / loudness. Attenuation of 0 means maximum volume.
+
+      Finally, all the 4 attenuated signals are summed up and are sent to the output pin of the chip.
+
+      # Historical use of the SN76489
+
+      The SN76489 family of programmable sound generators was introduced by Texas Instruments in 1980. Variants of the SN76489 were used in a number of home computers, game consoles and arcade boards:
 
       - home computers: [TI-99/4](https://en.wikipedia.org/wiki/TI-99/4A), [BBC Micro](https://en.wikipedia.org/wiki/BBC_Micro), [IBM PCjr](https://en.wikipedia.org/wiki/IBM_PCjr), [Sega SC-3000](https://en.wikipedia.org/wiki/SG-1000#SC-3000), [Tandy 1000](https://en.wikipedia.org/wiki/Tandy_1000)
       - game consoles: [ColecoVision](https://en.wikipedia.org/wiki/ColecoVision), [Sega SG-1000](https://en.wikipedia.org/wiki/SG-1000), [Sega Master System](https://en.wikipedia.org/wiki/Master_System), [Game Gear](https://en.wikipedia.org/wiki/Game_Gear), [Neo Geo Pocket](https://en.wikipedia.org/wiki/Neo_Geo_Pocket) and [Sega Genesis](https://en.wikipedia.org/wiki/Sega_Genesis)
@@ -73,7 +93,7 @@ documentation:
       
       The SN76489 chip family competed with the similar [General Instrument AY-3-8910](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910).
 
-      ### Original SN76489AN pinout
+      ### Original pinout of the SN76489AN
 
       ```
                    ,--._.--.
@@ -119,7 +139,7 @@ documentation:
 
       #### Synchronous reset and single phase clock
 
-      The original SN76489 design employed 2 phases of the clock for the operation of the registers. The original chip had no reset pin and would wakeup to a random state.
+      The original design employed 2 phases of the clock for the operation of the registers. The original chip had no reset pin and would wakeup to a random state.
       
       To make it easier to synthesize and test on FPGAs this implementation uses single clock phase and synchronous reset for registers.
 
@@ -130,6 +150,14 @@ documentation:
       1. the original SN76489 with the master clock internally divided by 16. This classical chip was intended for PAL and NTSC frequencies. However in [BBC Micro](https://en.wikipedia.org/wiki/BBC_Micro) 4 MHz clock was employed.
       2. SN94624/SN76494 variants without internal clock divider. These chips were intended for use with 250 to 500 KHz clocks.
       3. high frequency clock configuration for TinyTapeout, suitable for a range between 25 MHz and 50 Mhz. In this configuration the master clock is internally divided by 128.
+
+      #### Module parametrization
+
+      The module is parameterized and can match variants from the SN76489 family. The following parametrization options are provided:
+
+      - noise tapped bits
+      - tone counter and noise LFSR shift register size
+      - variable clock divider
 
       # SN76489 reverse engineering
 
@@ -266,6 +294,7 @@ documentation:
                                             there was a write to noise register
 
       ```
+      ### TODO: How to calculate tone period for a given note?
 
       ### Externally configurable clock divider
 
