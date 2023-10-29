@@ -6,18 +6,65 @@
     <img width="33%" src="./docs/SN76489.jpg">
 </p>
 
-Info
+
+# Modern replica of a classic SN76489
+
+This Verilog implementation is a replica of the classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
+With roughly a 1400 logic gates replica of the SN76489 fits on a **single tile** in TinyTapeout.
+
+The main goals of this project are:
+
+1. closely replicate the behavior and eventually **design of the original** SN76489
+2. provide a readable and well documented code for educational and hardware **preservation** purposes
+3. leverage the **modern fabrication** process
+
+A significant effort was put into a thorough **test suite** for regression testing and validation against the original chip behavior.
+
+## Module parametrization
+
+The module is parameterized and can match variants from the SN76489 family. The following parametrization options are provided:
+
+- noise tapped bits
+- tone counter and noise LFSR shift register size
+- variable clock divider
+
+## The future work
+
+The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summmation.
+
+# Chip technical capabilities
+
+- **3 square wave** tone generators
+- **1 noise** generator
+- 2 types of noise: *white* and *periodic*
+- Capable to produce a range of waves typically from **122 Hz** to **125 kHz**, defined by **10-bit** registers.
+- **16** different volume levels
+
 * https://en.wikipedia.org/wiki/Texas_Instruments_SN76489
 * https://www.vgmpf.com/Wiki/images/7/78/SN76489AN_-_Manual.pdf
 * https://www.vgmpf.com/Wiki/index.php?title=SN76489 (Video Game Music Preservation Foundation)
 * https://www.smspower.org/Development/SN76489
 * http://www.acornatom.nl/sites/atomreview/howel/parts/76489.htm
 
-Computers that used SN76489
-* BBC Micro, Tandy 100, Sega SG1000
 
-Compatible chips:
-* SN76489AN, SN76496, SN76494, SN94624, TMS9919
+# Historical use of the SN76489
+
+The SN76489 family of programmable sound generators was introduced by Texas Instruments in 1980. Variants of the SN76489 were used in a number of home computers, game consoles and arcade boards:
+
+- home computers: [TI-99/4](https://en.wikipedia.org/wiki/TI-99/4A), [BBC Micro](https://en.wikipedia.org/wiki/BBC_Micro), [IBM PCjr](https://en.wikipedia.org/wiki/IBM_PCjr), [Sega SC-3000](https://en.wikipedia.org/wiki/SG-1000#SC-3000), [Tandy 1000](https://en.wikipedia.org/wiki/Tandy_1000)
+- game consoles: [ColecoVision](https://en.wikipedia.org/wiki/ColecoVision), [Sega SG-1000](https://en.wikipedia.org/wiki/SG-1000), [Sega Master System](https://en.wikipedia.org/wiki/Master_System), [Game Gear](https://en.wikipedia.org/wiki/Game_Gear), [Neo Geo Pocket](https://en.wikipedia.org/wiki/Neo_Geo_Pocket) and [Sega Genesis](https://en.wikipedia.org/wiki/Sega_Genesis)
+- arcade machines by Sega & Konami and would usually include 2 or 4 SN76489 chips
+
+![Original pinout of the SN76489AN](./docs/SN76489_pinout.png)
+
+## Compatible chips
+* SN76489AN
+* SN76496
+* SN76494
+* SN94624
+* TMS9919
+
+The SN76489 chip family competed with the similar [General Instrument AY-3-8910](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910).
 
 Osciloscope recordings
 * https://scarybeastsecurity.blogspot.com/2020/06/sampled-sound-1980s-style-from-sn76489.html

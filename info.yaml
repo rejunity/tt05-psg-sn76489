@@ -43,6 +43,14 @@ documentation:
 
       A significant effort was put into a thorough **test suite** for regression testing and validation against the original chip behavior.
 
+      ### Module parametrization
+
+      The module is parameterized and can match variants from the SN76489 family. The following parametrization options are provided:
+
+      - noise tapped bits
+      - tone counter and noise LFSR shift register size
+      - variable clock divider
+
       ### The future work
 
       The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summmation.
@@ -105,7 +113,7 @@ documentation:
            /ce* -->|6    11|<-- D1
       AUDIO OUT <--|7    10|<-- D0
             GND ---|8     9|    not connected*
-                   `-------`
+                   `-------'
             * -- omitted from this Verilog implementation
 
       ```
@@ -151,15 +159,7 @@ documentation:
       2. SN94624/SN76494 variants without internal clock divider. These chips were intended for use with 250 to 500 KHz clocks.
       3. high frequency clock configuration for TinyTapeout, suitable for a range between 25 MHz and 50 Mhz. In this configuration the master clock is internally divided by 128.
 
-      #### Module parametrization
-
-      The module is parameterized and can match variants from the SN76489 family. The following parametrization options are provided:
-
-      - noise tapped bits
-      - tone counter and noise LFSR shift register size
-      - variable clock divider
-
-      # SN76489 reverse engineering
+      ### SN76489 reverse engineering
 
       This implementation is based on the results from these reverse engineering efforts:
 
@@ -220,24 +220,24 @@ documentation:
 
       ```
 
-            uController              SN76489
-            ,---------.            ,---._.---. 
-            |         |    4 Mhz ->|CLK  SEL0|<-- 0
-            |    GPIOx|----------->|D0   SEL1|<-- 0
-            |    GPIOx|----------->|D1       |
-            |    GPIOx|----------->|D2       |
-            |    GPIOx|----------->|D3       |          C1
-            |    GPIOx|----------->|D4       |     ,----||----.
-            |    GPIOx|----------->|D5       |     |          | 
-            |    GPIOx|----------->|D6       |     |  OpAmp   |        Speaker     
-            |    GPIOx|----------->|D7  AUDIO|     |   |\     |            /|
-            |    GPIOx|----------->|/WE  OUT |-----.---|-\    |   C2   .--/ |
-            `---------`            `---------`         |  }---.---||---|    |
-                                                    ,--|+/             `--\ |
-                                                    |  |/               |  \|
-                                                    |                   |
-                                                   ---                 ---  
-                                                   GND                 GND
+        uController              SN76489
+        ,---------.            ,---._.---. 
+        |         |    4 Mhz ->|CLK  SEL0|<-- 0
+        |    GPIOx|----------->|D0   SEL1|<-- 0
+        |    GPIOx|----------->|D1       |
+        |    GPIOx|----------->|D2       |
+        |    GPIOx|----------->|D3       |          C1
+        |    GPIOx|----------->|D4       |     ,----||----.
+        |    GPIOx|----------->|D5       |     |          | 
+        |    GPIOx|----------->|D6       |     |  OpAmp   |        Speaker     
+        |    GPIOx|----------->|D7  AUDIO|     |   |\     |            /|
+        |    GPIOx|----------->|/WE  OUT |-----.---|-\    |   C2   .--/ |
+        `---------'            `---------'         |  }---.---||---|    |
+                                                ,--|+/             `--\ |
+                                                |  |/               |  \|
+                                                |                   |
+                                               ---                 ---  
+                                               GND                 GND
       ```
 
       ### Summary of commands to communicate with the chip
@@ -247,21 +247,23 @@ documentation:
       Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
 
 
-      | Command  | Description                | Parameters                   |
-      |----------|----------------------------|------------------------------|
-      | 1cc0pppp | Set tone fine frequency    | p - 4 low bits, c - channel  |
-      | 00PPPPPP | Follow up with coarse freq | P - 6 high bits              |      
-      | 11100bff | Set noise and frequency    | b - white/periodic, f - freq |
-      | 1cc1aaaa | Set channel attenuation    | a - 4 bit attenuation        |
+      | Command  | Description                | Parameters                                |
+      |----------|----------------------------|-------------------------------------------|
+      | 1cc0ffff | Set tone fine frequency    | f - 4 low bits, c - channel #             |
+      | 00ffffff | Follow up with coarse freq | f - 6 high bits                           |      
+      | 11100bff | Set noise and frequency    | b - white/periodic, f - frequency control |
+      | 1cc1aaaa | Set channel attenuation    | a - 4 bit attenuation, c - channel #      |
 
-      | NF1 | NF0 | Noise frequency control      |
-      |-----|-----|------------------------------|
-      | 0   |   0 | Clock divided by 512         |
-      | 0   |   1 | Clock divided by 1024        |
-      | 1   |   0 | Clock divided by 2048        |
-      | 1   |   1 | Use channel 2 tone frequency |
+      | NF1 | NF0 | Noise frequency control       |
+      |-----|-----|-------------------------------|
+      | 0   |   0 | Clock divided by 512          |
+      | 0   |   1 | Clock divided by 1024         |
+      | 1   |   0 | Clock divided by 2048         |
+      | 1   |   1 | Use channel #2 tone frequency |
 
-      An example sequence of data bus writes. Hold **/WE** LOW while writing to the data bus.
+      #### An example sequence of data bus writes.
+
+      Hold **/WE** LOW while writing to the data bus.
 
       ```
       10001100 - Set channel #0 tone 4 low bits to hC
