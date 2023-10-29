@@ -343,7 +343,7 @@ async def test_psg(dut):
 
 ### UTILS #####################################################################
 
-SEL = 1
+SEL = 0
 SEL = os.environ.get("SEL", SEL)
 
 if SEL == 1 or SEL == "1" or SEL == "01":
