@@ -31,7 +31,7 @@ documentation:
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
       This Verilog implementation is a replica of a classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
-      With roughly a 1000 logic gates replica of SN76489 fits on a **single tile** in TinyTapeout.
+      With roughly a 1400 logic gates replica of SN76489 fits on a **single tile** in TinyTapeout.
 
       ### Modern replica of a classic
       
