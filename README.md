@@ -86,7 +86,7 @@ The SN76489 chip family competed with the similar [General Instrument AY-3-8910]
 # The SN76489 Reverse Engineered
 
 <p align="center" width="100%">
-    <img width="50%" src="./docs/SN76489AN_decapped.jpg">
+    <img width="55%" src="./docs/SN76489AN_decapped_thumbnail.jpg">
 </p>
 
 This implementation is based on the results from reverse engineering efforts:
