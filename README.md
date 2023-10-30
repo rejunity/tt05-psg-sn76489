@@ -33,8 +33,15 @@ The module is parameterized and can match variants from the SN76489 family. The 
 The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summmation.
 
 ### Listen to music recorded from this chip simulation
-[![MISSION76496 by hally for Sega Master System](./docs/MISSION76496_by_hally_yt.jpg)](https://www.youtube.com/watch?v=HXLAdA02I-w)
-[![Crazee Rider BBC Micro game](./docs/CrazeeRider_BBCMicro_yt.jpg)](https://www.youtube.com/watch?v=ghBGasckpSY)
+
+<p align="center" width="100%">
+    <a href="https://www.youtube.com/watch?v=HXLAdA02I-w">
+        <img width="40%" src="./docs/MISSION76496_by_hally_yt.jpg">
+    </a>    
+    <a href="https://www.youtube.com/watch?v=ghBGasckpSY">
+        <img width="40%" src="./docs/CrazeeRider_BBCMicro_yt.jpg">
+    </a>
+</p>
 
 # ASIC
 
