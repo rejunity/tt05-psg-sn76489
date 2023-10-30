@@ -3,14 +3,14 @@
 # SN76489 PSG in Verilog for Tiny Tapeout 5 (WIP)
 
 <p align="center" width="100%">
-    <img width="33%" src="./docs/SN76489.jpg">
+    <img width="50%" src="./docs/SN76489.jpg">
 </p>
 
 
 # Modern replica of a classic SN76489
 
 This Verilog implementation is a replica of the classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
-With roughly a 1400 logic gates replica of the SN76489 fits on a **single tile** in TinyTapeout.
+With roughly a 1400 logic gates replica of the SN76489 fits on a **single tile** of the [TinyTapeout](www.tinytapeout.com).
 
 The main goals of this project are:
 
