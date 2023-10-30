@@ -20,11 +20,7 @@ The main goals of this project are:
 
 A significant effort was put into a thorough [Cocotb](https://www.cocotb.org) powered **test suite** [test.py](./src/test.py) for regression testing and validation against the original chip behavior.
 
-### Listen to music recorded from this chip simulation
-[![MISSION76496 by hally for Sega Master System](./docs/MISSION76496_by_hally_yt.jpg)](https://www.youtube.com/watch?v=HXLAdA02I-w)
-[![Crazee Rider BBC Micro game](./docs/CrazeeRider_BBCMicro_yt.jpg)](https://www.youtube.com/watch?v=ghBGasckpSY)
-
-## Module parametrization
+### Module parametrization
 
 The module is parameterized and can match variants from the SN76489 family. The following parametrization options are provided:
 
@@ -32,9 +28,13 @@ The module is parameterized and can match variants from the SN76489 family. The 
 - tone counter and noise LFSR shift register size
 - variable clock divider
 
-## The future work
+### The future work
 
 The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summmation.
+
+### Listen to music recorded from this chip simulation
+[![MISSION76496 by hally for Sega Master System](./docs/MISSION76496_by_hally_yt.jpg)](https://www.youtube.com/watch?v=HXLAdA02I-w)
+[![Crazee Rider BBC Micro game](./docs/CrazeeRider_BBCMicro_yt.jpg)](https://www.youtube.com/watch?v=ghBGasckpSY)
 
 # Chip technical capabilities
 
