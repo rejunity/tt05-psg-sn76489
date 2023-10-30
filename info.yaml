@@ -31,13 +31,13 @@ documentation:
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
       This Verilog implementation is a replica of the classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
-      With roughly a 1400 logic gates replica of the SN76489 fits on a **single tile** in TinyTapeout.
+      With roughly a 1400 logic gates this design fits on a **single tile** of the TinyTapeout.
 
       ### Modern replica of a classic
       
       The main goals of this project are:
 
-      1. closely replicate the behavior and eventually **design of the original** SN76489
+      1. closely replicate the behavior and eventually the complete **design of the original** SN76489
       2. provide a readable and well documented code for educational and hardware **preservation** purposes
       3. leverage the **modern fabrication** process
 
@@ -84,7 +84,7 @@ documentation:
       Noise is produced with 15-bit [Linear-feedback Shift Register (LFSR)](https://en.wikipedia.org/wiki/Linear-feedback_shift_register) that flips the output bit pseudo randomly.
       The shift rate of the LFSR register is controller either by one of the 3 hardcoded power-of-two dividers or output from the channel #2 tone generator is used.
 
-      ### Attenuation
+      #### Attenuation
 
       Each of the four SN76489 channels have dedicated attenuation modules. The SN76489 has 16 steps of attenuation, each step is 2 dB and maximum possible attenuation is 28 dB.
       Note taht attenuation defitinition is the opposite of volume / loudness. Attenuation of 0 means maximum volume.
@@ -101,7 +101,7 @@ documentation:
       
       The SN76489 chip family competed with the similar [General Instrument AY-3-8910](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910).
 
-      ### Original pinout of the SN76489AN
+      ### The original pinout of the SN76489AN
 
       ```
                    ,--._.--.
@@ -118,7 +118,7 @@ documentation:
 
       ```
 
-      # Differences from the original hardware
+      # Difference from the original hardware
 
       This Verilog implementation is completely digital and synchronous design that differs from the original SN76489 design which incorporated analog parts.
 
@@ -159,7 +159,7 @@ documentation:
       2. SN94624/SN76494 variants without internal clock divider. These chips were intended for use with 250 to 500 KHz clocks.
       3. high frequency clock configuration for TinyTapeout, suitable for a range between 25 MHz and 50 Mhz. In this configuration the master clock is internally divided by 128.
 
-      ### SN76489 reverse engineering
+      ### The reverse engineered SN76489 
 
       This implementation is based on the results from these reverse engineering efforts:
 
@@ -183,11 +183,15 @@ documentation:
       The following example sets up 440Hz (A4) note at the full volume on the 1st channel and white noise at the half volume:
       ```
       await reset(dut)
-      await set_volume(dut, channel='1', 15)          # Set `Channel 1` to maximum volume
-      await set_tone(dut, channel='1', frequency=440) # Play 440Hz note on `Channel 1`
-      await set_volume(dut, channel='4', 8)           # Set `Channel 4` (noise channel) to half volume
-      await set_noise(dut, white=True, divider=512):  # Use on the 3 hardcoded divider values for noise generator
-      await set_noise_via_tone3(dut, white=True)      # results in approximately 1 kHz white noise when chip is clocked at 4 MHz
+      # Set `Channel 1` to maximum volume
+      await set_volume(dut, channel='1', 15)
+      # Play 440Hz note on `Channel 1`
+      await set_tone(dut, channel='1', frequency=440)
+      # Set `Channel 4` (noise channel) to half volume
+      await set_volume(dut, channel='4', 8)
+      # Use on the 3 hardcoded divider values for noise generator
+      # produces ~1 kHz white noise, if chip is clocked at 4 MHz
+      await set_noise(dut, white=True, divider=512)
       ```      
 
       ### Record music from the Verilog simulated design
@@ -247,12 +251,12 @@ documentation:
       Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
 
 
-      | Command  | Description                | Parameters                                |
-      |----------|----------------------------|-------------------------------------------|
-      | 1cc0ffff | Set tone fine frequency    | f - 4 low bits, c - channel #             |
-      | 00ffffff | Follow up with coarse freq | f - 6 high bits                           |      
-      | 11100bff | Set noise and frequency    | b - white/periodic, f - frequency control |
-      | 1cc1aaaa | Set channel attenuation    | a - 4 bit attenuation, c - channel #      |
+      | Command  | Description                     | Parameters                                |
+      |----------|---------------------------------|-------------------------------------------|
+      | 1cc0ffff | Set tone fine frequency         | f - 4 low bits, c - channel #             |
+      | 00ffffff | Follow up with coarse frequency | f - 6 high bits                           |      
+      | 11100bff | Set noise type and frequency    | b - white/periodic, f - frequency control |
+      | 1cc1aaaa | Set channel attenuation         | a - 4 bit attenuation, c - channel #      |
 
       | NF1 | NF0 | Noise frequency control       |
       |-----|-----|-------------------------------|
@@ -261,15 +265,33 @@ documentation:
       | 1   |   0 | Clock divided by 2048         |
       | 1   |   1 | Use channel #2 tone frequency |
 
-      #### An example sequence of data bus writes.
+      ### Note frequency
 
-      Hold **/WE** LOW while writing to the data bus.
+      Use the following formula to calculate the 10-bit value for a particular frequency:
+
+      ```
+      n = clock_frequency / (32 * note_frequency)
+      ```
+
+      For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
+
+      ```
+      n = 4000000 / (32 * 400)
+      n = 284 = h11C
+      ```
+
+      ### Data bus
+
+      #### An example sequence of writes to the data bus.
+
+      Remember to hold **/WE** LOW while writing to the data bus.
 
       ```
       10001100 - Set channel #0 tone 4 low bits to hC
-      00010001 -    ---//---    tone 6 high bits to hC
+      00010001 -    ---//---    tone 6 high bits to h11
       10010000 -    ---//---    volume to 100% (attenuation = 0)
-      11100100 - Set channel #3, noise type to white and frequency to 512 (NF1/NF0 bits = 0)
+
+      11100100 - Set channel #3, noise type to white and divider to 512
       11111000 -    ---//---    volume to 50% (attenuation = 8)
       ```
 
@@ -281,7 +303,7 @@ documentation:
            |        |         |         |         |         |
            |        |         |         |         |         |
       
-      /WE_(inverted write enable)     __        __        _______
+      /WE _       __        __        __        __        _______
            \_____/  \______/  \______/  \______/  \______/   *
                                                              ^
       D0..D7_______  ________  ________  ________  ________  |
@@ -296,8 +318,6 @@ documentation:
                                             there was a write to noise register
 
       ```
-      ### TODO: How to calculate tone period for a given note?
-
       ### Externally configurable clock divider
 
       | SEL1 | SEL0 | Description                        | Clock frequency|
