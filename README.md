@@ -21,8 +21,8 @@ The main goals of this project are:
 A significant effort was put into a thorough [Cocotb](https://www.cocotb.org) powered **test suite** [test.py](./src/test.py) for regression testing and validation against the original chip behavior.
 
 ### Listen to 8-bit music recorded from this chip simulation
-[![MISSION76496 by hally for Sega Master System](./docs/MISSION76496_by_hally_yt.jpg)](https://www.youtube.com/embed/HXLAdA02I-w)
-[![Crazee Rider BBC Micro game](./docs/CrazeeRider_BBCMicro_yt.jpg)](ttps://www.youtube.com/watch?v=ghBGasckpSY)
+[![MISSION76496 by hally for Sega Master System](./docs/MISSION76496_by_hally_yt.jpg)](https://www.youtube.com/watch?v=HXLAdA02I-w)
+[![Crazee Rider BBC Micro game](./docs/CrazeeRider_BBCMicro_yt.jpg)](https://www.youtube.com/watch?v=ghBGasckpSY)
 
 ## Module parametrization
 
