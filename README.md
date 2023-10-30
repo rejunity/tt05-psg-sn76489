@@ -1,6 +1,6 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg)
 
-# SN76489 PSG in Verilog for Tiny Tapeout 5 (WIP)
+# SN76489 PSG in Verilog for Tiny Tapeout 5
 
 <p align="center" width="100%">
     <img width="50%" src="./docs/SN76489.jpg">
@@ -35,6 +35,16 @@ The next step is to incorporate analog elements into the design to match the ori
 ### Listen to music recorded from this chip simulation
 [![MISSION76496 by hally for Sega Master System](./docs/MISSION76496_by_hally_yt.jpg)](https://www.youtube.com/watch?v=HXLAdA02I-w)
 [![Crazee Rider BBC Micro game](./docs/CrazeeRider_BBCMicro_yt.jpg)](https://www.youtube.com/watch?v=ghBGasckpSY)
+
+# ASIC
+
+The ASIC for the SN76489 replica is built using the open source Skywater 130nm [PDK](https://github.com/google/skywater-pdk) and is part of multi project [TinyTapeout](www.tinytapeout.com).
+
+This SN76489 fits in **160x100** um. The design consist of roughly **1400** digital logic gates and of which **173** are data flip-flops storing 1 bit of data each. Logic takes 75% of the chip area. Total wire length is **46 mm**!
+
+<p align="center" width="100%">
+    <img width="75%" src="./docs/GDS.png">
+</p>
 
 # Chip technical capabilities
 
