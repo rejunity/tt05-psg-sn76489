@@ -40,7 +40,7 @@ The next step is to incorporate analog elements into the design to match the ori
 
 The ASIC for the SN76489 replica is built using the open source Skywater 130nm [PDK](https://github.com/google/skywater-pdk) and is part of multi project [TinyTapeout](www.tinytapeout.com).
 
-This SN76489 fits in **160x100** um. The design consist of roughly **1400** digital logic gates and of which **173** are data flip-flops storing 1 bit of data each. Logic takes 75% of the chip area. Total wire length is **46 mm**!
+Using 130nm process this SN76489 fits in **160x100** um. The design consist of roughly **1400** digital logic gates and of which **173** are data flip-flops storing 1 bit of data each. Logic takes 75% of the chip area. Total wire length is **46 mm**!
 
 <p align="center" width="100%">
     <img width="75%" src="./docs/GDS.png">
