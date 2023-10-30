@@ -177,7 +177,7 @@ async def play_and_record_wav(dut):
             assert len(non_empty_packets) == 0
 
 
-    wave_file = [f"../output/{os.path.basename(vgm_filename).rstrip('.vgm')}.cocotb.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
+    wave_file = [f"../output/{os.path.basename(vgm_filename).rstrip('.vgm')}.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
     def get_sample(dut, channel):
         # try:
             if channel == 0:
