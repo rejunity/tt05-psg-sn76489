@@ -306,8 +306,7 @@ A configurable clock divider was introduced in this implementation. Clock divide
 * https://github.com/jotego/jt89 - VHDL
 * https://github.com/mamedev/mame/blob/master/src/devices/sound/sn76496.cpp - C++ MAME
 * https://github.com/digital-sound-antiques/emu76489 - C
-* https://github.com/mengstr/Discrete-AY-3-8910 - using only discreet 74-series logic ICs!
-
+* https://www.eevblog.com/forum/projects/sound-synthesiser-for-retro-computing - using only discreet 74-series logic ICs!
 
 # What is Tiny Tapeout?
 
