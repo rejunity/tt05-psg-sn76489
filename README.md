@@ -18,7 +18,7 @@ The main goals of this project are:
 2. provide a readable and well documented code for educational and hardware **preservation** purposes
 3. leverage the **modern fabrication** process
 
-A significant effort was put into a thorough **test suite** for regression testing and validation against the original chip behavior.
+A significant effort was put into a thorough [Cocotb](https://www.cocotb.org) powered **test suite** [test.py](./src/test.py) for regression testing and validation against the original chip behavior.
 
 ## Module parametrization
 
