@@ -216,6 +216,21 @@ Below is a short summary of the communication protocol of SN76489. Please consul
 | 1   |   0 | Clock divided by 2048         |
 | 1   |   1 | Use channel #2 tone frequency |
 
+### Note frequency
+
+Use the following formula to calculate the 10-bit value for a particular note frequency:
+
+```
+n = clock_frequency / (32 * note_frequency)
+```
+
+For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
+
+```
+n = 4000000 Hz / (32 * 400 Hz)
+n = 284 = h11C
+```
+
 ### An example sequence of data bus writes.
 
 Hold **/WE** LOW while writing to the data bus.
