@@ -11,6 +11,13 @@
 #   make SEL=1              :: run without clock divider, fastest!
 #   make MASTER_CLOCK=3579545 :: run tests with chip clocked at NTSC frequency
 
+# Useful helper functions to communicate with the chip under simulation
+#   await reset(dut)
+#   await set_volume(dut, channel=0, volume=15)
+#   await set_tone(dut, channel=0, frequency=440)
+#   await set_noise(dut, white=True, divider=512)
+#   await write(dut, data=1111_0000)              # write data directly on the data bus of the chip, holds /WE low
+
 
 import os
 import cocotb
