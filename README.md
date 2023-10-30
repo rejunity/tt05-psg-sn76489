@@ -14,11 +14,16 @@ With roughly a 1400 logic gates replica of the SN76489 fits on a **single tile**
 
 The main goals of this project are:
 
-1. closely replicate the behavior and eventually **design of the original** SN76489
+1. closely replicate the behavior and eventually the complete **design of the original** SN76489
 2. provide a readable and well documented code for educational and hardware **preservation** purposes
 3. leverage the **modern fabrication** process
 
 A significant effort was put into a thorough [Cocotb](https://www.cocotb.org) powered **test suite** [test.py](./src/test.py) for regression testing and validation against the original chip behavior.
+
+### Listen to 8-bit music recorded from this chip simulation
+[![Crazee Rider BBC Micro game](http://img.youtube.com/vi/ghBGasckpSY/0.jpg)](ttps://www.youtube.com/watch?v=ghBGasckpSY)
+[![MISSION76496 by hally for Sega Master System](http://img.youtube.com/vi/HXLAdA02I-w/0.jpg)](ttps://www.youtube.com/watch?v=HXLAdA02I-w)
+
 
 ## Module parametrization
 
