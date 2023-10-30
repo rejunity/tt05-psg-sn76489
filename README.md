@@ -46,6 +46,8 @@ This SN76489 fits in **160x100** um. The design consist of roughly **1400** digi
     <img width="75%" src="./docs/GDS.png">
 </p>
 
+View this chip in [3D](https://gds-viewer.tinytapeout.com/?model=https://rejunity.github.io/tt05-psg-sn76489/tinytapeout.gds.gltf)!
+
 # Chip technical capabilities
 
 - **3 square wave** tone generators
