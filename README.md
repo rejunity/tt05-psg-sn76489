@@ -1,6 +1,6 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg)
 
-# ASIC for SN76489 PSG written in Verilog for Tiny Tapeout 5
+# ASIC for SN76489 PSG in Verilog for Tiny Tapeout 5
 
 <p align="center" width="100%">
     <img width="50%" src="./docs/SN76489.jpg">
