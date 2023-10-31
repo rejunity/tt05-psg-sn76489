@@ -199,8 +199,6 @@ documentation:
       Simulated Verilog design can be fed with the stream of register values captured on a 8-bit computer in [Video Game Music (VGM)](https://vgmrips.net/wiki/VGM_Specification) format and 
       output converted to .wav file. This process is recommended for both testing and enjoying 8-bit era music!
 
-      To record VGM file:
-
       ```
       $ make MODULE=record VGM=../music/CrazeeRider-title.bbc50hz.vgm
       $ cd ../output
@@ -223,7 +221,6 @@ documentation:
       Another option is to use the Pulse Width Modulated (PWM) AUDIO OUT pin with OpAmp+capacitor based integrator or capacitor based low-pass filter and a speaker:
 
       ```
-
         uController              SN76489
         ,---------.            ,---._.---. 
         |         |    4 Mhz ->|CLK  SEL0|<-- 0
@@ -240,8 +237,7 @@ documentation:
                                                 ,--|+/             `--\ |
                                                 |  |/               |  \|
                                                 |                   |
-                                               ---                 ---  
-                                               GND                 GND
+                                           GND ---             GND ---  
       ```
 
       ### Summary of commands to communicate with the chip
@@ -251,12 +247,12 @@ documentation:
       Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
 
 
-      | Command  | Description                     | Parameters                                |
-      |----------|---------------------------------|-------------------------------------------|
-      | 1cc0ffff | Set tone fine frequency         | f - 4 low bits, c - channel #             |
-      | 00ffffff | Follow up with coarse frequency | f - 6 high bits                           |      
-      | 11100bff | Set noise type and frequency    | b - white/periodic, f - frequency control |
-      | 1cc1aaaa | Set channel attenuation         | a - 4 bit attenuation, c - channel #      |
+      | Command    | Description                     | Parameters                                    |
+      |------------|---------------------------------|-----------------------------------------------|
+      | `1cc0ffff` | Set tone fine frequency         | `f` - 4 low bits, `c` - channel #             |
+      | `00ffffff` | Follow up with coarse frequency | `f` - 6 high bits                             |      
+      | `11100bff` | Set noise type and frequency    | `b` - white/periodic, `f` - frequency control |
+      | `1cc1aaaa` | Set channel attenuation         | `a` - 4 bit attenuation, `c` - channel #      |
 
       | NF1 | NF0 | Noise frequency control       |
       |-----|-----|-------------------------------|
@@ -297,7 +293,6 @@ documentation:
 
       ### Timing diagram
       ```
-
       CLK   ____      ____      ____      ____      ____      ____         
          __/    \____/    \____/    \____/    \____/    \____/    \___ ...
            |        |         |         |         |         |
@@ -315,7 +310,7 @@ documentation:
                                                              |
                                                        noise restarts
                                                   after /WE goes high and
-                                            there was a write to noise register
+                                           there was a write to noise register
 
       ```
       ### Externally configurable clock divider
