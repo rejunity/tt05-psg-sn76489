@@ -53,7 +53,7 @@ documentation:
 
       ### The future work
 
-      The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summmation.
+      The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summation.
 
       # Chip technical capabilities
 
@@ -76,10 +76,10 @@ documentation:
 
       #### Square wave tone generators 
 
-      Square waves are produced by counting down the 10-bit counters. Each time counter reaches the 0 it is reloaded with the corresponding value from the configuration register and
-      the output bit of the channel is flipped producing square wave.
+      Square waves are produced by counting down the 10-bit counters. Each time the counter reaches the 0 it is reloaded with the corresponding value from the configuration register and
+      the output bit of the channel is flipped producing square waves.
 
-      #### Noise geneator
+      #### Noise generator
 
       Noise is produced with 15-bit [Linear-feedback Shift Register (LFSR)](https://en.wikipedia.org/wiki/Linear-feedback_shift_register) that flips the output bit pseudo randomly.
       The shift rate of the LFSR register is controller either by one of the 3 hardcoded power-of-two dividers or output from the channel #2 tone generator is used.
@@ -87,7 +87,7 @@ documentation:
       #### Attenuation
 
       Each of the four SN76489 channels have dedicated attenuation modules. The SN76489 has 16 steps of attenuation, each step is 2 dB and maximum possible attenuation is 28 dB.
-      Note taht attenuation defitinition is the opposite of volume / loudness. Attenuation of 0 means maximum volume.
+      Note that the attenuation definition is the opposite of volume / loudness. Attenuation of 0 means maximum volume.
 
       Finally, all the 4 attenuated signals are summed up and are sent to the output pin of the chip.
 
@@ -120,7 +120,7 @@ documentation:
 
       # Difference from the original hardware
 
-      This Verilog implementation is completely digital and synchronous design that differs from the original SN76489 design which incorporated analog parts.
+      This Verilog implementation is a completely digital and synchronous design that differs from the original SN76489 design which incorporated analog parts.
 
       #### Audio signal output
 
@@ -133,7 +133,7 @@ documentation:
       #### Separate 4 channel output
 
       Outputs of all 4 channels are exposed along with the master output. This allows to validate and mix signals externally.
-      In contrast the original chip was limited to a single audio output pin due to PDIP-16 package.
+      In contrast the original chip was limited to a single audio output pin due to the PDIP-16 package.
 
       #### No DC offset
 
@@ -141,13 +141,13 @@ documentation:
 
       #### **/CE** and **READY** pins are omitted for simplicity
 
-      **/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/CE** is tied *low* and chip is always enabled.
+      **/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/CE** is tied *low* and the chip is considered always enabled.
 
       Unlike the original SN76489 which took 32 cycles to update registers, this implementation handles register writes in a single cycle and chip behaves as always **READY**.
 
       #### Synchronous reset and single phase clock
 
-      The original design employed 2 phases of the clock for the operation of the registers. The original chip had no reset pin and would wakeup to a random state.
+      The original design employed 2 phases of the clock for the operation of the registers. The original chip had no reset pin and would wake up to a random state.
       
       To make it easier to synthesize and test on FPGAs this implementation uses single clock phase and synchronous reset for registers.
 
@@ -163,8 +163,8 @@ documentation:
 
       This implementation is based on the results from these reverse engineering efforts:
 
-      1. [Anotations and analysis](https://github.com/gchiasso/76489A-analysis) of the decapped SN76489A chip.
-      2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on decapped VDP chip from Sega Mega Drive which included a SN76496 variant.
+      1. [Annotations and analysis](https://github.com/gchiasso/76489A-analysis) of a decapped SN76489A chip.
+      2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on a decapped VDP chip from Sega Mega Drive which included a SN76496 variant.
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
@@ -178,14 +178,14 @@ documentation:
       $ make
       ```
 
-      There are number of useful functions in [test.py](https://github.com/rejunity/tt05-psg-sn76489/blob/main/src/test.py) that simplify communication with the sound generator.
+      There are a number of useful functions in [test.py](https://github.com/rejunity/tt05-psg-sn76489/blob/main/src/test.py) that simplify communication with the sound generator.
 
       The following example sets up 440Hz (A4) note at the full volume on the 1st channel and white noise at the half volume:
       ```
       await reset(dut)
       # Set `Channel 1` to maximum volume
       await set_volume(dut, channel='1', 15)
-      # Play 440Hz note on `Channel 1`
+      # Play 440 Hz note on `Channel 1`
       await set_tone(dut, channel='1', frequency=440)
       # Set `Channel 4` (noise channel) to half volume
       await set_volume(dut, channel='4', 8)
@@ -212,7 +212,7 @@ documentation:
 
       ### Connect chip to the speaker
 
-      There are several ways to connect this chip to the microontroller and speaker.
+      There are several ways to connect this chip to the microcontroller and speaker.
 
       One option is to connect off the shelf data parallel Digital to Analog Converter (DAC)
       for example [Digilent R2R Pmod](https://digilent.com/reference/pmod/pmodr2r/start) to the output pins and
@@ -242,7 +242,7 @@ documentation:
 
       ### Summary of commands to communicate with the chip
 
-      Once playback schematics of the SN76489 are established, controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
+      Once playback schematics of the SN76489 are established, the controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
 
       Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
 
@@ -358,6 +358,6 @@ documentation:
   tag:          "psg, music, sound" # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
   external_hw:  "DAC (for ex. Digilent R2R PMOD), RC filter, amplifier, speaker" # Describe any external hardware needed
   discord:      "rzioma"  # Your discord handle, used for communication and automatically assigning tapeout role after a submission
-  doc_link:     ""        # URL to longer form documentation, eg the README.md in your repository
+  doc_link:     "README.md" # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     4000000   # Clock frequency in Hz (if required)
   picture:      "docs/SN76489_chip_pinout_and_block_diagram.jpg" # relative path to a picture in your repository (must be 512kb or less)

@@ -30,7 +30,7 @@ The module is parameterized and can match variants from the SN76489 family. The 
 
 ### The future work
 
-The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summmation.
+The next step is to incorporate analog elements into the design to match the original SN76489 - DAC for each channel and an analog OpAmp for channel summation.
 
 ### Listen to music recorded from this chip simulation
 
@@ -91,13 +91,13 @@ The SN76489 chip family competed with the similar [General Instrument AY-3-8910]
 
 This implementation is based on the results from reverse engineering efforts:
 
-1. [Anotations and analysis](https://github.com/gchiasso/76489A-analysis) of the decapped SN76489A chip.
-2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on decapped VDP chip from Sega Mega Drive which included a SN76496 variant.
+1. [Annotations and analysis](https://github.com/gchiasso/76489A-analysis) of a decapped SN76489A chip.
+2. Reverse engineered [schematics](https://github.com/emu-russia/SEGAChips/tree/main/VDP/PSG) based on a decapped VDP chip from Sega Mega Drive which included a SN76496 variant.
 
 #### High resolution decapped images
 * https://siliconpr0n.org/map/ti/sn76489an/
 
-#### Osciloscope recordings
+#### Oscilloscope recordings
 * https://scarybeastsecurity.blogspot.com/2020/06/sampled-sound-1980s-style-from-sn76489.html
 
 # Record music from the Verilog simulated design!
@@ -145,20 +145,20 @@ Follow the instructions from Tiny Tapeout's [Testing Your Design Guide](https://
 
 ## Test-suite
 
-First of all, run the test suite: `make` from the `\src` folder. `make` will compile Verilog source and launch `cocotb` test suite.
+First of all, run the test suite: `make` from the `\src` folder. `make` will compile the Verilog source and launch `cocotb` test suite.
 
 ```
     cd src
     make
 ```
 
-There are number of useful functions in [test.py](./src/test.py) that simplify communication with the sound generator.
+There are a number of useful functions in [test.py](./src/test.py) that simplify communication with the sound generator.
 
 The following example sets up 440Hz (A4) note at the full volume on the 1st channel and white noise at the half volume:
 ```
     await reset(dut)
     await set_volume(dut, channel='1', 15)          # Set `Channel 1` to maximum volume
-    await set_tone(dut, channel='1', frequency=440) # Play 440Hz note on `Channel 1`
+    await set_tone(dut, channel='1', frequency=440) # Play 440 Hz note on `Channel 1`
     await set_volume(dut, channel='4', 8)           # Set `Channel 4` (noise channel) to half volume
     await set_noise(dut, white=True, divider=512):  # Use on the 3 hardcoded divider values for noise generator
     await set_noise_via_tone3(dut, white=True)      # results in approximately 1 kHz white noise when chip is clocked at 4 MHz
@@ -166,7 +166,7 @@ The following example sets up 440Hz (A4) note at the full volume on the 1st chan
 
 ## Connect chip to the speaker
 
-There are several ways to connect this chip to the microontroller and speaker.
+There are several ways to connect this chip to the microcontroller and speaker.
 
 One option is to connect off the shelf data parallel Digital to Analog Converter (DAC)
 for example [Digilent R2R Pmod](https://digilent.com/reference/pmod/pmodr2r/start) to the output pins and
@@ -198,7 +198,7 @@ uController              SN76489
 
 ## Summary of commands to communicate with the chip
 
-Once playback schematics of the SN76489 are established, controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
+Once playback schematics of the SN76489 are established, the controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
 
 Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
 
@@ -269,7 +269,7 @@ D0..D7_______  ________  ________  ________  ________  |
 
 # Differences from the original hardware
 
-This Verilog implementation is completely digital and synchronous design that differs from the original SN76489 design which incorporated analog parts.
+This Verilog implementation is a completely digital and synchronous design that differs from the original SN76489 design which incorporated analog parts.
 
 #### Audio signal output
 
@@ -281,8 +281,8 @@ The module provides two alternative outputs for the generated audio signal:
 
 #### Separate 4 channel output
 
-Outputs of all 4 channels are exposed along with the master output. This allows to validate and mix signals externally.
-In contrast the original chip was limited to a single audio output pin due to PDIP-16 package.
+Outputs of all 4 channels are exposed along with the master output. This allows us to validate and mix signals externally.
+In contrast the original chip was limited to a single audio output pin due to the PDIP-16 package.
 
 #### No DC offset
 
@@ -290,13 +290,13 @@ This implementation produces unsigned output waveforms without DC offset.
 
 #### **/CE** and **READY** pins are omitted for simplicity
 
-**/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/CE** is tied *low* and chip is always enabled.
+**/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/CE** is tied *low* and the chip is considered always enabled.
 
 Unlike the original SN76489 which took 32 cycles to update registers, this implementation handles register writes in a single cycle and chip behaves as always **READY**.
 
 #### Synchronous reset and single phase clock
 
-The original design employed 2 phases of the clock for the operation of the registers. The original chip had no reset pin and would wakeup to a random state.
+The original design employed 2 phases of the clock for the operation of the registers. The original chip had no reset pin and would wake up to a random state.
 
 To make it easier to synthesize and test on FPGAs this implementation uses single clock phase and synchronous reset for registers.
 
