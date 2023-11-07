@@ -746,5 +746,13 @@ class Parser:
         self.data.seek(original_pos)
 
     def validate_vgm_version(self):
+        def bcd_version_to_str(bcd):
+            version = ""
+            while bcd > 0:
+                version = str(bcd & 15) + version
+                bcd >>= 4
+            return version
+
         if self.metadata['version'] not in self.supported_ver_list:
-            raise VersionError('VGM version ' + str(self.metadata['version']//256) + '.' + str(self.metadata['version']&255) + ' is not supported')
+            version = self.metadata['version']
+            raise VersionError(f'VGM version {bcd_version_to_str(version>>8)}.{bcd_version_to_str(version&255)} is not supported')
