@@ -11,13 +11,18 @@ else:
 class VersionError(Exception):
     pass
 
-
+#
+# VGM Specification: https://vgmrips.net/wiki/VGM_Specification
+#
 class Parser:
     # VGM file identifier
     vgm_magic_number = b'Vgm '
 
     # Supported VGM versions
     supported_ver_list = [
+        0x00000100,
+        0x00000101,
+        0x00000110,
         0x00000150,
         0x00000151,
         0x00000160,
@@ -28,6 +33,58 @@ class Parser:
 
     # VGM metadata offsets
     metadata_offsets = {
+        # Version 1.00
+        0x00000100: {
+            'vgm_ident': {'offset': 0x00, 'size': 4, 'type_format': None},
+            'eof_offset': {'offset': 0x04, 'size': 4, 'type_format': '<I'},
+            'version': {'offset': 0x08, 'size': 4, 'type_format': '<I'},
+            'sn76489_clock': {'offset': 0x0c, 'size': 4, 'type_format': '<I'},
+            # 1.00/1.01 specific - later ym2413_clock
+            'ym2151_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I', 'condition': lambda val: val <= 5000000},
+            # 1.00/1.01 specific - later ym2413_clock
+            'ym2612_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I', 'condition': lambda val: val > 5000000 },
+            'gd3_offset': {'offset': 0x14, 'size': 4, 'type_format': '<I'},
+            'total_samples': {'offset': 0x18, 'size': 4, 'type_format': '<I'},
+            'loop_offset': {'offset': 0x1c, 'size': 4, 'type_format': '<I'},
+            'loop_samples': {'offset': 0x20, 'size': 4, 'type_format': '<I'},
+            'sn76489_feedback': 0x0009,
+            'sn76489_shift_register_width': 16,
+        },
+        # Version 1.01
+        0x00000101: {
+            'vgm_ident': {'offset': 0x00, 'size': 4, 'type_format': None},
+            'eof_offset': {'offset': 0x04, 'size': 4, 'type_format': '<I'},
+            'version': {'offset': 0x08, 'size': 4, 'type_format': '<I'},
+            'sn76489_clock': {'offset': 0x0c, 'size': 4, 'type_format': '<I'},
+            # 1.00/1.01 specific - later ym2413_clock
+            'ym2151_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I', 'condition': lambda val: val <= 5000000},
+            # 1.00/1.01 specific - later ym2413_clock
+            'ym2612_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I', 'condition': lambda val: val > 5000000 },
+            'gd3_offset': {'offset': 0x14, 'size': 4, 'type_format': '<I'},
+            'total_samples': {'offset': 0x18, 'size': 4, 'type_format': '<I'},
+            'loop_offset': {'offset': 0x1c, 'size': 4, 'type_format': '<I'},
+            'loop_samples': {'offset': 0x20, 'size': 4, 'type_format': '<I'},
+            'rate': {'offset': 0x24, 'size': 4, 'type_format': '<I'},               # 1.01
+            'sn76489_feedback': 0x0009,
+            'sn76489_shift_register_width': 16,
+        },
+        # Version 1.10
+        0x00000110: {
+            'vgm_ident': {'offset': 0x00, 'size': 4, 'type_format': None},
+            'eof_offset': {'offset': 0x04, 'size': 4, 'type_format': '<I'},
+            'version': {'offset': 0x08, 'size': 4, 'type_format': '<I'},
+            'sn76489_clock': {'offset': 0x0c, 'size': 4, 'type_format': '<I'},
+            'ym2413_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I'},
+            'gd3_offset': {'offset': 0x14, 'size': 4, 'type_format': '<I'},
+            'total_samples': {'offset': 0x18, 'size': 4, 'type_format': '<I'},
+            'loop_offset': {'offset': 0x1c, 'size': 4, 'type_format': '<I'},
+            'loop_samples': {'offset': 0x20, 'size': 4, 'type_format': '<I'},
+            'rate': {'offset': 0x24, 'size': 4, 'type_format': '<I'},
+            'sn76489_feedback': {'offset': 0x28, 'size': 2, 'type_format': '<H'},   # 1.10
+            'sn76489_shift_register_width': {'offset': 0x2a, 'size': 1, 'type_format': 'B'}, #1.10
+            'ym2612_clock': {'offset': 0x2c, 'size': 4, 'type_format': '<I'},       # 1.10
+            'ym2151_clock': {'offset': 0x30, 'size': 4, 'type_format': '<I'},       # 1.10
+        },
         # Version 1.50
         0x00000150: {
             'vgm_ident': {'offset': 0x00, 'size': 4, 'type_format': None},
@@ -40,23 +97,11 @@ class Parser:
             'loop_offset': {'offset': 0x1c, 'size': 4, 'type_format': '<I'},
             'loop_samples': {'offset': 0x20, 'size': 4, 'type_format': '<I'},
             'rate': {'offset': 0x24, 'size': 4, 'type_format': '<I'},
-            'sn76489_feedback': {
-                'offset': 0x28,
-                'size': 2,
-                'type_format': '<H',
-            },
-            'sn76489_shift_register_width': {
-                'offset': 0x2a,
-                'size': 1,
-                'type_format': 'B',
-            },
+            'sn76489_feedback': {'offset': 0x28, 'size': 2, 'type_format': '<H'},
+            'sn76489_shift_register_width': {'offset': 0x2a,'size': 1,'type_format': 'B'},
             'ym2612_clock': {'offset': 0x2c, 'size': 4, 'type_format': '<I'},
             'ym2151_clock': {'offset': 0x30, 'size': 4, 'type_format': '<I'},
-            'vgm_data_offset': {
-                'offset': 0x34,
-                'size': 4,
-                'type_format': '<I',
-            },
+            'vgm_data_offset': {'offset': 0x34, 'size': 4, 'type_format': '<I'},    # 1.50
         },
         # Version 1.51
         0x00000151: {
@@ -336,6 +381,7 @@ class Parser:
         self.validate_vgm_data()
 
         # Set up the variables that will be populated
+        self.vgm_data_offset = 0x40
         self.command_list = []
         self.data_block = None
         self.data_block_type = None
@@ -356,8 +402,9 @@ class Parser:
 
         # Seek to the start of the VGM data
         self.data.seek(
-            self.metadata['vgm_data_offset'] +
-            self.metadata_offsets[self.metadata['version']]['vgm_data_offset']['offset']
+            self.vgm_data_offset
+            #self.metadata['vgm_data_offset'] +
+            #self.metadata_offsets[self.metadata['version']]['vgm_data_offset']['offset']
         )
 
         while True:
@@ -628,15 +675,18 @@ class Parser:
         for version, offsets in self.metadata_offsets.items():
             # Skip parsing metadata from VGM versions later than the version of the file
             if version <= self.metadata.get('version', highest_supported_version):
+
+                # Calculate offset of VGM data
+                if 'vgm_data_offset' in self.metadata:
+                    self.vgm_data_offset =  self.metadata['vgm_data_offset'] + \
+                                            self.metadata_offsets[version]['vgm_data_offset']['offset']
+                header_end = self.vgm_data_offset # Header ends where VGM data starts
+
                 for value, offset_data in offsets.items():
 
-                    # Calculate offset of VGM data
-                    vgm_data_offset = self.metadata.get('vgm_data_offset', 0)
-                    if vgm_data_offset > 0:
-                        vgm_data_offset += self.metadata_offsets[version]['vgm_data_offset']['offset']
-                    else:
-                        vgm_data_offset = 0x40
-                    header_end = vgm_data_offset # Header ends where VGM data starts
+                    if not isinstance(offset_data, dict):
+                        self.metadata[value] = offset_data
+                        continue
 
                     # Skip parsing metadata attributes that are located outside the header,
                     # set them to 0 instead.
@@ -655,12 +705,17 @@ class Parser:
 
                     # Unpack the data if required
                     if offset_data['type_format'] is not None:
-                        self.metadata[value] = struct.unpack(
+                        data = struct.unpack(
                             offset_data['type_format'],
                             data,
                         )[0]
-                    else:
-                        self.metadata[value] = data
+
+                    # Check if special condition applies
+                    # mostly used for a backwards compatibility handling in pre 1.10 formats
+                    if 'condition' in offset_data and not offset_data['condition'](data):
+                        continue
+
+                    self.metadata[value] = data
 
         # Seek back to the original position in the VGM data
         self.data.seek(original_pos)
