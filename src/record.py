@@ -188,6 +188,9 @@ async def play_and_record_wav(dut):
             # return 0
     print(vgm_filename, "->", wave_file)
     print(f"VGM playback rate: {playback_rate}, clock: {clock_rate}, frames: {len(music)}" )
+    print(f"VGM length: {len(music)/playback_rate:.2f} sec" )
+    print(f"This script will record {max_time if max_time > 0 else len(music)/playback_rate:.2f} sec" )
+    
     
     WRITE_ENABLED  = 0b11111_01_0 # SEL = 1 :: no clock div ; /WE = 0 :: writes enabled
     WRITE_DISABLED = 0b11111_01_1 # SEL = 1 :: no clock div ; /WE = 1 :: writes disabled
@@ -216,10 +219,6 @@ async def play_and_record_wav(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
     print_chip_state(dut)
-
-    dut._log.info("record " + str(max_time) + " sec")
-    # music = music[(60+45)*50:-1]
-    # music = music[:300]
 
     n = 0
     samples = [[] for ch in wave_file]
