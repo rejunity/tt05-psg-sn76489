@@ -21,7 +21,13 @@ VGM_FILENAME = os.environ.get("VGM_FILENAME", VGM_FILENAME)
 
 MAX_TIME = -1
 try:
-    MAX_TIME = int(os.environ.get("MAX_TIME", VGM_FILENAME))
+    MAX_TIME = int(os.environ.get("MAX_TIME", MAX_TIME))
+except:
+    pass
+
+LOOP = 0
+try:
+    LOOP = int(os.environ.get("LOOP", LOOP))
 except:
     pass
 
@@ -176,6 +182,9 @@ async def play_and_record_wav(dut):
             non_empty_packets = list(filter(lambda packet: packet != b'', music_raw[cutoff:-1]))
             assert len(non_empty_packets) == 0
 
+    if LOOP > 0:
+        music = music * LOOP
+        music_raw = music_raw * LOOP
 
     wave_file = [f"../output/{os.path.basename(vgm_filename).rstrip('.vgm')}.{ch}.wav" for ch in ["master", "tone0", "tone1", "tone2", "noise"]]
     def get_sample(dut, channel):
