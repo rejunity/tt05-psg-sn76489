@@ -110,14 +110,14 @@ documentation:
       The module provides two alternative outputs for the generated audio signal:
 
       1. digital 8-bit audio output suitable for external Digital to Analog Converter (DAC)
-      2. pseudo analog output with Pulse Width Modulation (PWM)
+      2. pseudo analog output through Pulse Width Modulation (PWM)
 
       ___Separate 4 channel output___ Outputs of all 4 channels are exposed along with the master output. This allows to validate and mix signals externally.
       In contrast the original chip was limited to a single audio output pin due to the PDIP-16 package.
 
-      ___No DC offset___ This implementation produces unsigned output waveforms without DC offset.
+      ___No DC offset___ This implementation produces output 0/1 waveforms without DC offset.
 
-      ___**/CE** and **READY** pins are omitted for simplicity___ **/CE**, chip enable control pin is omitted in this design. The behavior is the same as if **/CE** is tied *low* and the chip is considered always enabled.
+      ___No /CE and READY pins__ Chip enable control pin **/CE** is omitted in this design for simplicity. The behavior is the same as if **/CE** is tied *low* and the chip is considered always enabled.
 
       Unlike the original SN76489 which took 32 cycles to update registers, this implementation handles register writes in a single cycle and chip behaves as always **READY**.
 
@@ -204,7 +204,7 @@ documentation:
         |    GPIOx|----------->|D3       |           C1
         |    GPIOx|----------->|D4       |      ,----||----.
         |    GPIOx|----------->|D5  chan0|---.  |          | 
-        |    GPIOx|----------->|D6  chan1|---+  |  OpAmp   |        Speaker
+        |    GPIOx|----------->|D6  chan1|---+  |  Op-amp  |        Speaker
         |    GPIOx|----------->|D7  chan2|---+  |   |X     |            /|
         |    GPIOx|----------->|/WE chan3|---+--.---|-X    |   C2   .--/ |
         `---------'            `---------'          |  }---.---||---|    |
@@ -236,9 +236,12 @@ documentation:
       | 1   |   0 | Clock divided by 2048         |
       | 1   |   1 | Use channel #2 tone frequency |
 
+      Hold **/WE** low once data bus pins are set to the desired values.
+      Pull **/WE** high again before setting different value on the data bus.
+
       **Note frequency**
 
-      Use the following formula to calculate the 10-bit value for a particular frequency:
+      Use the following formula to calculate the 10-bit period value for a particular note :
 
       $$ tone period_{cycles} = clock_{frequency} / (32_{cycles} * note_{frequency}) $$
 
@@ -246,10 +249,7 @@ documentation:
 
       $$ tone   period_{cycles} = 4000000 Hz / (32_{cycles} * 400 Hz) = 284 = 11C_{hex} $$ 
 
-      **An example sequence of data commands to produce sound**
-
-      Hold **/WE** low once data bus pins are set to the desired values.
-      Pull **/WE** high again before setting different value on the data bus.
+      **An example sequence of data commands to produce a sound**
 
       ```10001100```    Set **channel #0** tone 4 low bits to $C_{hex} = 1100_{bin}$
 
