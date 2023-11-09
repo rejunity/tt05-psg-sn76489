@@ -240,22 +240,25 @@ documentation:
 
       Use the following formula to calculate the 10-bit value for a particular frequency:
 
-      $$ n = clock_{frequency} / (32 * note_{frequency}) $$
+      $$ tone period_{cycles} = clock_{frequency} / (32_{cycles} * note_{frequency}) $$
 
       For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
 
-      $$ n = 4000000 Hz / (32 * 400 Hz) = 284 $$ 
+      $$ tone period_{cycles} = 4000000 Hz / (32_{cycles} * 400 Hz) = 284 = 11C_{hex} $$ 
 
       **An example sequence of data commands to produce sound**
 
       Hold **/WE** low once data bus pins are set to the desired values.
       Pull **/WE** high again before setting different value to data bus.
 
-      ```10001100``` - Set **channel #0** tone 4 low bits to **hC**
-      ```00010001``` -    ---//---    tone 6 high bits to **h11**
+      ```10001100``` - Set **channel #0** tone 4 low bits to $C_{hex} = 1100_{bin}$
+
+      ```00010001``` -    ---//---    tone 6 high bits to $11_{hex} = 10001_{bin}$
+
       ```10010000``` -    ---//---    volume to 100% (attenuation = **0**)
 
       ```11100100``` - Set **channel #3**, noise type to white and divider to 512
+
       ```11111000``` -    ---//---    volume to 50% (attenuation = **8**)
 
       **Timing diagram**
