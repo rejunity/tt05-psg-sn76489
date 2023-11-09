@@ -214,6 +214,7 @@ documentation:
                                             GND ---             GND ---  
       ```
 
+
       **Summary of commands to communicate with the chip**
 
       Once playback schematics of the SN76489 are established, the controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
@@ -239,25 +240,23 @@ documentation:
 
       Use the following formula to calculate the 10-bit value for a particular frequency:
 
-      $$ n = clock_frequency / (32 * note_frequency) $$
+      $$ n = clock_f_r_e_q_u_e_n_c_y / (32 * note_f_r_e_q_u_e_n_c_y) $$
 
       For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
 
-      $$ n = 4000000 / (32 * 400) = 284 $$ 
+      $$ n = 4000000 Hz / (32 * 400 Hz) = 284 $$ 
 
       **An example sequence of data commands to produce sound**
 
       Hold **/WE** low once data bus pins are set to the desired values.
       Pull **/WE** high again before setting different value to data bus.
 
-      ```
-      10001100 - Set channel #0 tone 4 low bits to hC
-      00010001 -    ---//---    tone 6 high bits to h11
-      10010000 -    ---//---    volume to 100% (attenuation = 0)
+      ```10001100``` - Set **channel #0** tone 4 low bits to **hC**
+      ```00010001``` -    ---//---    tone 6 high bits to **h11**
+      ```10010000``` -    ---//---    volume to 100% (attenuation = **0**)
 
-      11100100 - Set channel #3, noise type to white and divider to 512
-      11111000 -    ---//---    volume to 50% (attenuation = 8)
-      ```
+      ```11100100``` - Set **channel #3**, noise type to white and divider to 512
+      ```11111000``` -    ---//---    volume to 50% (attenuation = **8**)
 
       **Timing diagram**
       ```
