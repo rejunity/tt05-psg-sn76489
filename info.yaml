@@ -53,7 +53,7 @@ documentation:
       - Capable to produce a range of waves typically from **122 Hz** to **125 kHz**, defined by **10-bit** registers.
       - **16** different volume levels
 
-      ___Registers___ The behavior of the SN76489 is defined with 8 "registers" - 4 x 4 bit volume registers, 3 x 10 bit tone registers and 1 x 3 bit noise configuration register.
+      ___Registers___ The behavior of the SN76489 is defined by 8 "registers" - 4 x 4 bit volume registers, 3 x 10 bit tone registers and 1 x 3 bit noise configuration register.
 
       | Channel | Volume registers       | Tone & noise registers   |
       |---------|------------------------|--------------------------|
@@ -142,9 +142,9 @@ documentation:
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
       
-      **Connect chip to the speaker**
 
-      There are several ways to connect this chip to a microcontroller and speaker.
+      The data bus of the SN76489 chip has to be connected to microcontroller and receive a regular stream of commands.
+      The SN76489 produces audio output and has to be connected to a speaker. There are several ways how overall schematics can be established.
 
       ___8-bit parallel output via DAC___ One option is to connect off the shelf data parallel Digital to Analog Converter (DAC)
       for example [Digilent R2R Pmod](https://digilent.com/reference/pmod/pmodr2r/start) to the output pins and
@@ -244,25 +244,27 @@ documentation:
 
       For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
 
-      $$ tone period_{cycles} = 4000000 Hz / (32_{cycles} * 400 Hz) = 284 = 11C_{hex} $$ 
+      $$ tone   period_{cycles} = 4000000 Hz / (32_{cycles} * 400 Hz) = 284 = 11C_{hex} $$ 
 
       **An example sequence of data commands to produce sound**
 
       Hold **/WE** low once data bus pins are set to the desired values.
-      Pull **/WE** high again before setting different value to data bus.
+      Pull **/WE** high again before setting different value on the data bus.
 
-      ```10001100``` - Set **channel #0** tone 4 low bits to $C_{hex} = 1100_{bin}$
+      ```10001100```    Set **channel #0** tone 4 low bits to **$C_{hex} = 1100_{bin}$**
 
-      ```00010001``` -    ---//---    tone 6 high bits to $11_{hex} = 10001_{bin}$
+      ```00010001```    Set **channel #0** tone 6 high bits to **$11_{hex} = 10001_{bin}$**
 
-      ```10010000``` -    ---//---    volume to 100% (attenuation = **0**)
+      ```10010000```    Set **channel #0** volume to 100% (attenuation = **0**)
 
-      ```11100100``` - Set **channel #3**, noise type to white and divider to 512
+      ```11100100```    Set **channel #3** noise type to **white** and divider to **512**
 
-      ```11111000``` -    ---//---    volume to 50% (attenuation = **8**)
+      ```11111000```    Set **channel #3** noise volume to 50% (attenuation = **8**)
 
-      **Timing diagram**
       ```
+      Timing diagram
+
+
       CLK   ____      ____      ____      ____      ____      ____         
          __/    `____/    `____/    `____/    `____/    `____/    `___ ...
            |        |         |         |         |         |
@@ -295,6 +297,15 @@ documentation:
       | 0    |    1 | SN76494 mode, no clock divider     | 250 .. 500 kHZ |
       | 1    |    0 | New mode for TT05, clock div. 128  |  25 .. 50  MHz |
 
+
+      | SEL1 | SEL0 | Formula to calculate the 10-bit tone period value for a note |
+      |------|------|--------------------------------------------------------------|
+      | 0    |    0 | $clock_{frequency} / (32_{cycles} * note_{frequency})$       |
+      | 1    |    1 | -----//-----                                                 |
+      | 0    |    1 | $clock_{frequency} / (2_{cycles} * note_{frequency})$        |
+      | 1    |    0 | $clock_{frequency} / (256_{cycles} * note_{frequency})$      |
+
+
       **Example music recorded from the chip simulation**
 
       - [https://www.youtube.com/watch?v=ghBGasckpSY](Crazee Rider BBC Micro game)
@@ -324,8 +335,8 @@ documentation:
 # A description of what the bidirectional I/O pins do
   bidirectional:
     - (in)  **/WE** write enable
-    - (in)  **SEL0** 0 = clock div 16, 1 = no divider (SN94624/SN76494 mode)
-    - (in)  **SEL1** 0 = clock div 16, 1 = clock div 128
+    - (in)  **SEL0** clock divider
+    - (in)  **SEL1** clock divider
     - (out) channel 0 (PWM)
     - (out) channel 1 (PWM)
     - (out) channel 2 (PWM)
