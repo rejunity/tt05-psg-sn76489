@@ -62,7 +62,6 @@ documentation:
       | 2       | Channel #2 attenuation | Tone #2 frequency        |
       | 3       | Channel #3 attenuation | Noise type and frequency |
 
-      
       ___Square wave tone generators___ Square waves are produced by counting down the 10-bit counters. Each time the counter reaches the 0 it is reloaded with the corresponding value from the configuration register and
       the output bit of the channel is flipped producing square waves.
 
@@ -103,7 +102,7 @@ documentation:
 
       ```
 
-      ** Difference from the original hardware **
+      **Difference from the original hardware**
 
       This Verilog implementation is a completely digital and synchronous design that differs from the original SN76489 design which incorporated analog parts.
 
@@ -133,7 +132,7 @@ documentation:
       3. high frequency clock configuration for TinyTapeout, suitable for a range between 25 MHz and 50 Mhz. In this configuration the master clock is internally divided by 128.
 
 
-      ** The reverse engineered SN76489 **
+      **The reverse engineered SN76489**
 
       This implementation is based on the results from these reverse engineering efforts:
 
@@ -143,7 +142,7 @@ documentation:
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
       
-      ** Connect chip to the speaker **
+      **Connect chip to the speaker**
 
       There are several ways to connect this chip to a microcontroller and speaker.
 
@@ -151,6 +150,7 @@ documentation:
       for example [Digilent R2R Pmod](https://digilent.com/reference/pmod/pmodr2r/start) to the output pins and
       route the resulting analog audio to piezo speaker or amplifier.
 
+      ```
         uController              SN76489
         ,---------.            ,---._.---. 
         |         |    4 Mhz ->|CLK  SEL0|<-- 0
@@ -168,7 +168,7 @@ documentation:
                                                                      |  `|
                                                                      |
                                                                 GND ---  
-
+      ```
 
       ___AUDIO OUT through RC filter___ Another option is to use the Pulse Width Modulated (PWM) AUDIO OUT pin that combines 4 channels with the Resistor-Capacitor based low-pass filter or better the Operation Amplifier (Op-amp) & Capacitor based integrator:
 
@@ -214,7 +214,7 @@ documentation:
                                             GND ---             GND ---  
       ```
 
-      ** Summary of commands to communicate with the chip **
+      **Summary of commands to communicate with the chip**
 
       Once playback schematics of the SN76489 are established, the controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
 
@@ -235,7 +235,7 @@ documentation:
       | 1   |   0 | Clock divided by 2048         |
       | 1   |   1 | Use channel #2 tone frequency |
 
-      ** Note frequency **
+      **Note frequency**
 
       Use the following formula to calculate the 10-bit value for a particular frequency:
 
@@ -245,7 +245,7 @@ documentation:
 
       $$ n = 4000000 / (32 * 400) = 284 $$ 
 
-      ** An example sequence of data commands to produce sound **
+      **An example sequence of data commands to produce sound**
 
       Hold **/WE** low once data bus pins are set to the desired values.
       Pull **/WE** high again before setting different value to data bus.
@@ -259,7 +259,7 @@ documentation:
       11111000 -    ---//---    volume to 50% (attenuation = 8)
       ```
 
-      ** Timing diagram **
+      **Timing diagram**
       ```
       CLK   ____      ____      ____      ____      ____      ____         
          __/    `____/    `____/    `____/    `____/    `____/    `___ ...
@@ -282,7 +282,7 @@ documentation:
 
       ```
 
-      ** Configurable clock divider **
+      **Configurable clock divider**
 
       Clock divider can be controlled through **SEL0** and **SEL1** control pins and allows to select between 3 chip variants.
 
@@ -293,7 +293,7 @@ documentation:
       | 0    |    1 | SN76494 mode, no clock divider     | 250 .. 500 kHZ |
       | 1    |    0 | New mode for TT05, clock div. 128  |  25 .. 50  MHz |
 
-      ** Example music recorded from the chip simulation **
+      **Example music recorded from the chip simulation**
 
       - [https://www.youtube.com/watch?v=ghBGasckpSY](Crazee Rider BBC Micro game)
       - [https://www.youtube.com/watch?v=HXLAdA02I-w](MISSION76496 tune for Sega Master System)
