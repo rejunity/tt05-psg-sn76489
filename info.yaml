@@ -240,7 +240,7 @@ documentation:
 
       Use the following formula to calculate the 10-bit value for a particular frequency:
 
-      $$ n = clock_f_r_e_q_u_e_n_c_y / (32 * note_f_r_e_q_u_e_n_c_y) $$
+      $$ n = clock_{frequency} / (32 * note_{frequency}) $$
 
       For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
 
