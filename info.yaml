@@ -117,7 +117,7 @@ documentation:
 
       ___No DC offset___ This implementation produces output 0/1 waveforms without DC offset.
 
-      ___No /CE and READY pins__ Chip enable control pin **/CE** is omitted in this design for simplicity. The behavior is the same as if **/CE** is tied *low* and the chip is considered always enabled.
+      ___No /CE and READY pins___ Chip enable control pin **/CE** is omitted in this design for simplicity. The behavior is the same as if **/CE** is tied *low* and the chip is considered always enabled.
 
       Unlike the original SN76489 which took 32 cycles to update registers, this implementation handles register writes in a single cycle and chip behaves as always **READY**.
 
@@ -184,8 +184,8 @@ documentation:
         |    GPIOx|----------->|D5       |     |          | 
         |    GPIOx|----------->|D6       |     |  Op-amp  |        Speaker     
         |    GPIOx|----------->|D7  AUDIO|     |   |X     |            /|
-        |    GPIOx|----------->|/WE  OUT |-----.---|-X    |   C2   .--/ |
-        `---------'            `---------'         |  }---.---||---|    |
+        |    GPIOx|----------->|/WE  OUT |-----+---|-X    |   C2   .--/ |
+        `---------'            `---------'         |  }---+---||---|    |
                                                 ,--|+/             `--` |
                                                 |  |/               |  `|
                                                 |                   |
@@ -206,8 +206,8 @@ documentation:
         |    GPIOx|----------->|D5  chan0|---.  |          | 
         |    GPIOx|----------->|D6  chan1|---+  |  Op-amp  |        Speaker
         |    GPIOx|----------->|D7  chan2|---+  |   |X     |            /|
-        |    GPIOx|----------->|/WE chan3|---+--.---|-X    |   C2   .--/ |
-        `---------'            `---------'          |  }---.---||---|    |
+        |    GPIOx|----------->|/WE chan3|---+--+---|-X    |   C2   .--/ |
+        `---------'            `---------'          |  }---+---||---|    |
                                                  ,--|+/             `--` |
                                                  |  |/               |  `|
                                                  |                   |
@@ -247,7 +247,7 @@ documentation:
 
       For example 10-bit value that plays 440 Hz note on a chip clocked at 4 MHz would be:
 
-      $$ tone   period_{cycles} = 4000000 Hz / (32_{cycles} * 400 Hz) = 284 = 11C_{hex} $$ 
+      $$ tone   period_{cycles} = 4000000 Hz / (32_{cycles} * 440 Hz) = 284 = 11C_{hex} $$ 
 
       **An example sequence of data commands to produce a sound**
 
