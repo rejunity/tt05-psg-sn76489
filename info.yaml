@@ -249,15 +249,15 @@ documentation:
 
       **An example to play a note accompanied with a lower volume noise**
 
-      ```10001100```    Set **channel #0** tone 4 low bits to $C_{hex} = 1100_{bin}$
+      | /WE |D7 |D6,D5|D4..D0| Explanation |
+      |-----|---|----|-------|--------------------------------------------------|
+      | 0   |`1`|`00`|`01100`| Set **channel #0** tone low 4-bits to $C_{hex} = 1100_{bin}$ |
+      | 0   |`0`|`00`|`10001`| Set **channel #0** tone high 6-bits to $11_{hex} = 010001_{bin}$ |
+      | 0   |`1`|`00`|`10000`| Set **channel #0** volume to **100%**, attenuation 4-bits are $0_{dec} = 0000_{bin}$ |
+      | 0   |`1`|`11`|`00100`| Set **channel #3** noise type to **white** and divider to **512** |
+      | 0   |`1`|`11`|`11000`| Set **channel #3** noise volume to **50%**, attenuation 4-bits are $8_{dec} = 1000_{bin}$ |
 
-      ```00010001```    Set **channel #0** tone 6 high bits to $11_{hex} = 010001_{bin}$
 
-      ```10010000```    Set **channel #0** volume to **100%**, attenuation 4-bits are $0_{dec} = 0000_{bin}$
-
-      ```11100100```    Set **channel #3** noise type to **white** and divider to **512**
-
-      ```11111000```    Set **channel #3** noise volume to **50%**, attenuation 4-bits are $8_{dec} = 1000_{bin}$
 
       ```
       Timing diagram
