@@ -217,9 +217,7 @@ documentation:
 
       **Summary of commands to communicate with the chip**
 
-      Once playback schematics of the SN76489 are established, the controller program has to send data to the chip. SN76489 is programmed by updating its internal registers via data bus.
-
-      Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
+      The SN76489 is programmed by updating its internal registers via the data bus. Below is a short summary of the communication protocol of SN76489. Please consult [SN76489 Technical Manual](https://github.com/rejunity/tt05-psg-sn76489/blob/main/docs/SN76489AN_Manual.pdf) for more information.
 
 
       | Command    | Description                     | Parameters                                    |
@@ -249,7 +247,7 @@ documentation:
 
       $$ tone   period_{cycles} = 4000000 Hz / (32_{cycles} * 440 Hz) = 284 = 11C_{hex} $$ 
 
-      **An example sequence of data commands to produce a sound**
+      **An example to play a note accompanied with a lower volume noise**
 
       ```10001100```    Set **channel #0** tone 4 low bits to $C_{hex} = 1100_{bin}$
 
