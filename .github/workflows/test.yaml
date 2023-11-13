@@ -1,0 +1,39 @@
+name: test
+# either manually started, or on a schedule
+on: [ push, workflow_dispatch ]
+jobs:
+  test:
+    # ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    # need the repo checked out
+    - name: checkout repo
+      uses: actions/checkout@v3
+
+    # install oss fpga tools
+    - name: install oss-cad-suite
+      uses: YosysHQ/setup-oss-cad-suite@v2
+      with:
+          python-override: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: | 
+        yosys --version
+        iverilog -V
+        cocotb-config --libpython
+        cocotb-config --python-bin
+
+    - name: test
+      run: |
+        cd src
+        make clean
+        make
+        # make will return success even if the test fails, so check for failure in the results.xml
+        ! grep failure results.xml
+
+    - name: upload vcd
+      if: success() || failure()
+      uses: actions/upload-artifact@v3
+      with:
+          name: test-vcd
+          path: src/tb.vcd
+
