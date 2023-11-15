@@ -96,6 +96,7 @@ This implementation is based on the results from reverse engineering efforts:
 
 #### High resolution decapped images
 * https://siliconpr0n.org/map/ti/sn76489an/
+* https://github.com/emu-russia/SEGAChips/blob/main/VDP/PSG/Docs/PSG_Other.jpg
 
 #### Oscilloscope recordings
 * https://scarybeastsecurity.blogspot.com/2020/06/sampled-sound-1980s-style-from-sn76489.html
