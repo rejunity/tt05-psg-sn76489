@@ -120,7 +120,7 @@ module tt_um_rejunity_sn76489 #( parameter CHANNEL_OUTPUT_BITS = 10,
         end
 
         for (i = 0; i < NUM_NOISES; i = i + 1) begin : noise
-            noise #(.COUNTER_BITS(FREQUENCY_COUNTER_BITS)) gen (
+            noise gen (
                 .clk(clk),
                 .enable(clk_master_strobe),
                 .reset(reset),

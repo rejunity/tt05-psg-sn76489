@@ -3,7 +3,7 @@
 // For the SMS (1 and 2), Genesis and Game Gear, the tapped bits are bits 0 and 3 ($0009), fed back into bit 15.
 // For the SG-1000, OMV, SC-3000H, BBC Micro and Colecovision, the tapped bits are bits 0 and 1 ($0003), fed back into bit 14.
 // For the Tandy 1000, the tapped bits are bits 0 and 4 ($0011), fed back into bit 14.    
-module noise #( parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1, parameter COUNTER_BITS = 10 ) (
+module noise #(parameter LFSR_BITS = 15, LFSR_TAP0 = 0, LFSR_TAP1 = 1) (
     input  wire clk,
     input  wire enable,
     input  wire reset,
