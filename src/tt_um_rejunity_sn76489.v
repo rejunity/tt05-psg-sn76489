@@ -28,6 +28,9 @@ module tt_um_rejunity_sn76489 #( parameter CHANNEL_OUTPUT_BITS = 10,
     wire [7:0] data;
     assign data = ui_in;
 
+    // List all unused inputs to prevent warnings
+    wire _unused = &{ena, uio_in[7:3], 1'b0};
+
     reg [$clog2(128)-1:0] clk_counter;
     reg clk_master_strobe;
     always @(*) begin
