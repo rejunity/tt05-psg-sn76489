@@ -4,16 +4,21 @@
 # defaults
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
+SRC_DIR = $(PWD)/../src
+PROJECT_SOURCES = attenuation.v tone.v noise.v signal_edge.v pwm.v tt_um_rejunity_sn76489.v
 
 # normal simulation
 ifneq ($(GATES),yes)
 
-# this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/attenuation.v $(PWD)/tone.v $(PWD)/noise.v $(PWD)/signal_edge.v $(PWD)/pwm.v $(PWD)/tt_um_rejunity_sn76489.v $(PWD)/tb.v
+# RTL simulation:
+SIM_BUILD       = sim_build/rtl
+VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+COMPILE_ARGS    += -I$(SRC_DIR)
 
 else
 
-# gate level simulation requires some extra setup, you shouldn't need to touch this
+# Gate level simulation:
+SIM_BUILD        = sim_build/gl
 COMPILE_ARGS    += -DGL_TEST
 COMPILE_ARGS    += -DFUNCTIONAL
 COMPILE_ARGS    += -DUSE_POWER_PINS
@@ -23,10 +28,12 @@ VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitiv
 VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
 
 # this gets copied in by the GDS action workflow
-VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/gate_level_netlist.v
+VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
+
 endif
 
-# TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
+# Include the testbench sources:
+VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
 
 # MODULE is the basename of the Python test file
