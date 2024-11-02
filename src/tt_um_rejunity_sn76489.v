@@ -45,9 +45,12 @@ module tt_um_rejunity_sn76489 #( parameter CHANNEL_OUTPUT_BITS = 10,
     // - 4 x 4 bit volume registers (attenuation)
     // - 3 x 10 bit tone registers  (frequency)
     // - 1 x 3 bit noise register
-    localparam NUM_CHANNELS = NUM_TONES + NUM_NOISES;    
+    localparam NUM_CHANNELS = NUM_TONES + NUM_NOISES;
+    (* mem2reg *)
     reg [ATTENUATION_CONTROL_BITS-1:0]  control_attn[NUM_CHANNELS-1:0];
+    (* mem2reg *)
     reg [FREQUENCY_COUNTER_BITS-1:0]    control_tone_freq[NUM_TONES-1:0];
+    (* mem2reg *)
     reg [NOISE_CONTROL_BITS-1:0]        control_noise[NUM_NOISES-1:0];
     reg [2:0] latch_control_reg;
     reg restart_noise;
