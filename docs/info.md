@@ -188,7 +188,7 @@ Clock divider can be controlled through **SEL0** and **SEL1** control pins and a
 | SEL1 | SEL0 | Description                        | Clock frequency|
 |------|------|------------------------------------|----------------|
 | 0    |    0 | SN76489 mode, clock divided by 16  | 3.5 .. 4.2 MHz |
-| 1    |    1 |           -----//-----             | 3.5 .. 4.2 MHz |
+| 1    |    1 |           -----/ /-----            | 3.5 .. 4.2 MHz |
 | 0    |    1 | SN76494 mode, no clock divider     | 250 .. 500 kHZ |
 | 1    |    0 | New mode for TT05, clock div. 128  |  25 .. 50  MHz |
 
@@ -196,7 +196,7 @@ Clock divider can be controlled through **SEL0** and **SEL1** control pins and a
 | SEL1 | SEL0 | Formula to calculate the 10-bit tone period value for a note |
 |------|------|--------------------------------------------------------------|
 | 0    |    0 | $clock_{frequency}$ / $(32_{cycles} * note_{frequency})$     |
-| 1    |    1 | -----//-----                                                 |
+| 1    |    1 | -----/ /-----                                                |
 | 0    |    1 | $clock_{frequency}$ / $(2_{cycles} * note_{frequency})$      |
 | 1    |    0 | $clock_{frequency}$ / $(256_{cycles} * note_{frequency})$    |
 
