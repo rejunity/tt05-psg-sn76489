@@ -1,12 +1,3 @@
-<!---
-
-This file is used to generate your project datasheet. Please fill in the information below and delete any unused
-sections.
-
-You can also include images in this folder and reference them in the markdown. Each image must be less than
-512 kb in size, and the combined size of all images must be less than 1 MB.
--->
-
 ## How it works
 
 This Verilog implementation is a replica of the classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
@@ -204,16 +195,16 @@ Clock divider can be controlled through **SEL0** and **SEL1** control pins and a
 
 | SEL1 | SEL0 | Formula to calculate the 10-bit tone period value for a note |
 |------|------|--------------------------------------------------------------|
-| 0    |    0 | $clock_{frequency} / (32_{cycles} * note_{frequency})$       |
+| 0    |    0 | $clock_{frequency}$ / $(32_{cycles} * note_{frequency})$     |
 | 1    |    1 | -----//-----                                                 |
-| 0    |    1 | $clock_{frequency} / (2_{cycles} * note_{frequency})$        |
-| 1    |    0 | $clock_{frequency} / (256_{cycles} * note_{frequency})$      |
+| 0    |    1 | $clock_{frequency}$ / $(2_{cycles} * note_{frequency})$      |
+| 1    |    0 | $clock_{frequency}$ / $(256_{cycles} * note_{frequency})$    |
 
 
 **Some examples of music recorded from the chip simulation**
 
-- [https://www.youtube.com/watch?v=ghBGasckpSY](Crazee Rider BBC Micro game)
-- [https://www.youtube.com/watch?v=HXLAdA02I-w](MISSION76496 tune for Sega Master System)
+- [Crazee Rider BBC Micro game](https://www.youtube.com/watch?v=ghBGasckpSY)
+- [MISSION76496 tune for Sega Master System](https://www.youtube.com/watch?v=HXLAdA02I-w)
 
 
 ## External hardware
