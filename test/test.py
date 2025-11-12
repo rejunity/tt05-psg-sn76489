@@ -484,12 +484,10 @@ async def write(dut, data):
     dut.uio_in.value = WRITE_ENABLED
     dut.ui_in.value = data
     await ClockCycles(dut.clk, 1)
-    print_chip_state(dut)
 
 async def flush(dut):
     dut.uio_in.value = WRITE_DISABLED
     await ClockCycles(dut.clk, 1)
-    print_chip_state(dut)
 
 async def set_tone(dut, channel, frequency=-1, period=-1):
     channel = channel_index(channel)
@@ -539,7 +537,6 @@ async def set_volume(dut, channel, vol=0):
     channel = channel_index(channel)
     assert 0 <= channel and channel <= 3
     assert 0 <= vol     and vol <= 15
-    print(channel, vol)
     await write(dut, CMD_ATTENUATOR | (channel << 5) | (15 - vol))
     await flush(dut)
 
@@ -564,7 +561,6 @@ async def assert_output(dut, frequency=-1, period=-1, constant=False, noise=Fals
     for i in range(cycles_to_collect_data//clocks_to_step):
         last_state = get_output(dut) > mid_volume
         await ClockCycles(dut.clk, clocks_to_step)
-        # print_chip_state(dut)
         new_state = get_output(dut) > mid_volume
         if last_state != new_state:
             state_changes += 1
