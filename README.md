@@ -6,7 +6,6 @@
     <img width="50%" src="./docs/SN76489.jpg">
 </p>
 
-
 # Modern replica of a classic SN76489
 
 This Verilog implementation is a replica of the classical **[SN76489](https://en.wikipedia.org/wiki/Texas_Instruments_SN76489)** programmable sound generator.
